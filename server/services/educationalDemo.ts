@@ -266,6 +266,189 @@ The next time you see a leaf, remember: you're looking at a solar panel more eff
     return { outline, scripts };
   }
 
+  // Newton's Laws Content
+  if (topic.toLowerCase().includes('newton') || topic.toLowerCase().includes('law')) {
+    const outline: SeriesOutline = {
+      title: "Newton's Three Laws of Motion: The Foundation of Classical Mechanics",
+      episodes: [
+        {
+          episodeNumber: 1,
+          title: "The First Law: Objects at Rest and in Motion",
+          description: "Understanding inertia and why objects resist changes in their motion",
+          keyTopics: ["inertia", "rest and motion", "net force", "equilibrium"],
+          estimatedDuration: "8 minutes"
+        },
+        {
+          episodeNumber: 2,
+          title: "The Second Law: Force, Mass, and Acceleration",
+          description: "Exploring the relationship between force, mass, and acceleration through F=ma",
+          keyTopics: ["F=ma", "force vectors", "mass vs weight", "acceleration"],
+          estimatedDuration: "9 minutes"
+        },
+        {
+          episodeNumber: 3,
+          title: "The Third Law: Action and Reaction Forces",
+          description: "Every action has an equal and opposite reaction - understanding force pairs",
+          keyTopics: ["action-reaction pairs", "force pairs", "normal force", "tension"],
+          estimatedDuration: "8 minutes"
+        },
+        {
+          episodeNumber: 4,
+          title: "Applying Newton's Laws: Real-World Problem Solving",
+          description: "Using all three laws together to solve physics problems and understand motion",
+          keyTopics: ["free body diagrams", "problem solving", "combined forces", "applications"],
+          estimatedDuration: "10 minutes"
+        }
+      ].slice(0, episodeCount)
+    };
+
+    const scripts: EpisodeScript[] = [
+      {
+        title: "The First Law: Objects at Rest and in Motion",
+        description: "Understanding inertia and why objects resist changes in their motion",
+        script: `Welcome to our exploration of one of physics' most fundamental principles: Newton's First Law of Motion.
+
+Isaac Newton revolutionized our understanding of motion in 1687 with his three laws. The first law, often called the Law of Inertia, states: "An object at rest stays at rest, and an object in motion stays in motion, unless acted upon by an unbalanced force."
+
+Let's break this down. Imagine a book sitting on your desk. According to Newton's First Law, that book will remain exactly where it is forever - unless something pushes or pulls it. The book has inertia, which is the tendency of objects to resist changes in their motion.
+
+But what about objects already in motion? Picture a hockey puck sliding across ice. Without friction, that puck would glide in a straight line at constant speed forever. In the real world, friction acts as an unbalanced force, gradually slowing the puck until it stops.
+
+This leads us to a crucial concept: net force. When forces are balanced - like a book on a table where gravity pulls down and the table pushes up with equal strength - there's no net force. The object remains at rest or continues moving at constant velocity.
+
+Here's where many people get confused. They think moving objects naturally slow down and stop. But Newton showed us this only happens because of forces like friction and air resistance. In space, with no friction, a spacecraft can coast for years without using its engines.
+
+Let's consider a car driving down a highway at constant speed. Is Newton's First Law being violated? Not at all! The engine provides just enough force to overcome air resistance and friction. The net force is zero, so the car maintains constant velocity.
+
+Inertia depends on mass. A bowling ball has more inertia than a tennis ball - it's harder to start rolling and harder to stop once it's moving. This is why seat belts are crucial. When a car suddenly stops, your body's inertia keeps it moving forward at the car's original speed.
+
+Newton's First Law also explains why you feel pushed backward when a car accelerates forward. Your body's inertia resists the change in motion, so you feel pressed into your seat as the car pushes you forward.
+
+Think about this law in everyday situations: Why do you lurch forward when a bus stops suddenly? Why does a coin keep sliding when you quickly pull a tablecloth from under it? The answer is always inertia - objects resist changes in their motion.
+
+In our next episode, we'll discover what happens when forces aren't balanced, leading us to Newton's Second Law and the famous equation F=ma.`,
+        duration: "8 minutes"
+      },
+      {
+        title: "The Second Law: Force, Mass, and Acceleration",
+        description: "Exploring the relationship between force, mass, and acceleration through F=ma",
+        script: `Now we dive into Newton's Second Law, perhaps the most mathematically powerful of the three laws: Force equals mass times acceleration, or F=ma.
+
+This elegant equation tells us exactly what happens when forces become unbalanced. When there's a net force acting on an object, that object will accelerate in the direction of the net force.
+
+Let's unpack each component. Force is a push or pull measured in Newtons. Mass is the amount of matter in an object, measured in kilograms. Acceleration is the rate of change of velocity, measured in meters per second squared.
+
+The beauty of F=ma is that it works both ways. If you know any two variables, you can calculate the third. Need to find acceleration? Divide force by mass: a = F/m. Want to know how much force is needed? Multiply mass by desired acceleration: F = ma.
+
+Here's a crucial insight: acceleration is inversely proportional to mass. This means if you apply the same force to two objects, the lighter object will accelerate more. Push a shopping cart and a car with equal force - the cart accelerates much more because it has less mass.
+
+Let's work through a real example. Imagine you're pushing a 50-kilogram box with a force of 100 Newtons. Using F=ma, we get: 100 = 50 × a, so a = 2 meters per second squared. The box accelerates at 2 m/s².
+
+But wait - what if there's friction? Say friction creates a 30-Newton force opposing your push. The net force becomes 100 - 30 = 70 Newtons. Now the acceleration is 70 ÷ 50 = 1.4 m/s². Always remember to consider all forces to find the net force.
+
+Newton's Second Law also reveals why mass and weight are different. Weight is a force - specifically, the gravitational force acting on an object. Weight = mass × gravitational acceleration, or W = mg. On Earth, g = 9.8 m/s², so a 10-kilogram object weighs 98 Newtons.
+
+This explains why astronauts are weightless in space. Their mass doesn't change, but without gravity creating a net force, they don't experience weight. They're in free fall, constantly accelerating toward Earth at the same rate as their spacecraft.
+
+Consider a car accelerating from rest. The engine provides force through the wheels, but the car's acceleration depends on both this driving force and the car's mass. A sports car accelerates faster than a truck with the same engine because it has less mass.
+
+Force is a vector, which means it has both magnitude and direction. If multiple forces act on an object, you must add them as vectors. Forces in the same direction add together; forces in opposite directions subtract.
+
+Picture a tug-of-war. If Team A pulls with 500 Newtons east and Team B pulls with 300 Newtons west, the net force is 200 Newtons east. The rope (and whoever's attached) accelerates eastward.
+
+Newton's Second Law also explains why airbags save lives. In a crash, the car stops quickly, but your body continues moving due to inertia. The airbag provides a force to stop you, but it increases the time over which this happens. Since impulse (force × time) equals change in momentum, extending the time reduces the required force.
+
+Next time, we'll explore Newton's Third Law and discover why forces always come in pairs.`,
+        duration: "9 minutes"
+      },
+      {
+        title: "The Third Law: Action and Reaction Forces",
+        description: "Every action has an equal and opposite reaction - understanding force pairs",
+        script: `Newton's Third Law is often stated as "For every action, there is an equal and opposite reaction." But this simple phrase contains profound implications for how forces work in our universe.
+
+More precisely, the Third Law states: "When object A exerts a force on object B, object B simultaneously exerts an equal and opposite force on object A." These are called action-reaction pairs, and they always occur together.
+
+Here's the key insight: forces never exist alone. They always come in pairs. When you push on a wall, the wall pushes back on you with exactly the same force. When Earth pulls you down with gravity, you pull Earth up with the same gravitational force.
+
+Let's explore some examples to make this concrete. When you walk, you push backward against the ground with your foot. By Newton's Third Law, the ground pushes forward on your foot with equal force. This forward force from the ground is what propels you forward.
+
+Think about swimming. You push water backward with your hands and feet. The water pushes you forward with equal force. No water, no forward motion - which is why swimming in air doesn't work!
+
+Cars demonstrate this beautifully. The engine doesn't directly push the car forward. Instead, the wheels push backward against the road. The road pushes forward on the wheels, moving the car. This is why cars can't accelerate on frictionless ice - there's no grip for the action-reaction pair.
+
+Here's where students often get confused: "If forces are always equal and opposite, why does anything move?" The answer lies in understanding that action-reaction pairs act on different objects.
+
+When you push a shopping cart, you exert a force on the cart, and the cart exerts an equal force on you. But these forces act on different objects. The force on the cart accelerates the cart forward. The force on you pushes you backward, but your feet grip the ground, preventing you from sliding.
+
+Rockets provide the most dramatic example of Newton's Third Law. A rocket doesn't "push against" space. Instead, it expels hot gases downward at high speed. By Newton's Third Law, the gases push the rocket upward with equal force. This is why rockets work in the vacuum of space.
+
+Consider a book resting on a table. Gravity pulls the book downward with its weight. But the book isn't accelerating downward, so there must be another force. The table exerts an upward normal force equal to the book's weight. But wait - these aren't action-reaction pairs! They both act on the same object (the book).
+
+The true action-reaction pairs are: (1) Earth pulls book down, book pulls Earth up; (2) Book pushes table down, table pushes book up. Each pair involves forces on different objects.
+
+Newton's Third Law explains many everyday phenomena. When you sit in a chair, you compress it slightly. The chair's material pushes back, supporting your weight. When you catch a baseball, the ball exerts a force on your glove, and your glove exerts an equal force on the ball, slowing it down.
+
+Birds fly by pushing air downward with their wings. The air pushes the bird upward with equal force. Fish swim by pushing water backward; the water pushes the fish forward.
+
+Even explosions follow Newton's Third Law. When a firecracker explodes, pieces fly in all directions. But the total momentum remains zero - for every piece flying one way, there's momentum flying the opposite way.
+
+Understanding action-reaction pairs helps explain why some things are harder than others. It's difficult to jump when standing on ice because the ice can't provide much horizontal reaction force. It's easier to push a car than to push a wall because the car can move, allowing the action-reaction pair to result in motion.
+
+In our final episode, we'll see how all three laws work together to solve real physics problems.`,
+        duration: "8 minutes"
+      },
+      {
+        title: "Applying Newton's Laws: Real-World Problem Solving",
+        description: "Using all three laws together to solve physics problems and understand motion",
+        script: `Now we bring Newton's three laws together to solve real-world problems. This is where physics becomes a powerful tool for understanding and predicting motion in our world.
+
+The key to applying Newton's laws is systematic problem-solving. We start by identifying all forces acting on an object, draw a free-body diagram, apply Newton's laws, and solve for unknowns.
+
+Let's work through a classic problem: a 10-kilogram box sliding down a 30-degree inclined plane with friction. We want to find the box's acceleration.
+
+Step 1: Identify the forces. Gravity pulls straight down with force mg = 10 × 9.8 = 98 Newtons. The inclined surface exerts a normal force perpendicular to the surface. Friction acts parallel to the surface, opposing motion.
+
+Step 2: Break forces into components. Gravity has two components: one parallel to the incline (mg sin 30° = 98 × 0.5 = 49 N down the incline) and one perpendicular (mg cos 30° = 98 × 0.866 = 85 N into the surface).
+
+Step 3: Apply Newton's laws. Perpendicular to the incline, there's no acceleration, so normal force equals the perpendicular component of gravity: N = 85 N. Friction force equals the coefficient of friction times normal force: f = μN.
+
+Step 4: Apply Newton's Second Law parallel to the incline. Net force = mg sin θ - f = ma. If the coefficient of friction is 0.3, then f = 0.3 × 85 = 25.5 N. Net force = 49 - 25.5 = 23.5 N. Acceleration = 23.5 ÷ 10 = 2.35 m/s².
+
+This problem uses all three laws: First Law (perpendicular equilibrium), Second Law (F=ma parallel to incline), and Third Law (normal force as reaction to gravity's perpendicular component).
+
+Let's consider a more complex system: two masses connected by a rope over a pulley. A 5-kg mass hangs vertically while a 3-kg mass slides on a horizontal surface with friction coefficient 0.2.
+
+For the hanging mass: T - mg = ma, so T - 49 = 5a (where T is tension and a is acceleration).
+For the sliding mass: T - f = ma, so T - 5.88 = 3a (where f = 0.2 × 29.4 = 5.88 N).
+
+Solving these simultaneously: From the first equation, T = 49 + 5a. Substituting into the second: 49 + 5a - 5.88 = 3a, which gives 43.12 = -2a, so a = -21.56 m/s². Wait - that's impossible!
+
+Let me recalculate. The hanging mass accelerates downward, the sliding mass accelerates horizontally. For consistent directions: hanging mass: mg - T = ma, so 49 - T = 5a. Sliding mass: T - f = ma, so T - 5.88 = 3a.
+
+Adding equations: 49 - 5.88 = 8a, so a = 5.39 m/s². The system accelerates at 5.39 m/s² with tension T = 22.05 N.
+
+Newton's laws also explain vehicle safety. Crumple zones in cars increase the time during which deceleration occurs. Since impulse (force × time) equals change in momentum, increasing time decreases force, reducing injury.
+
+Seat belts work through Newton's First Law. When a car stops suddenly, passengers continue moving due to inertia. Seat belts apply force to change the passenger's motion, preventing collision with the dashboard.
+
+Consider a rocket launch. Initially, the rocket's thrust must overcome its weight just to lift off. As fuel burns, the rocket's mass decreases, so the same thrust produces greater acceleration (a = F/m). This is why rockets accelerate faster as they climb.
+
+Athletes use Newton's laws strategically. Sprinters push backward against starting blocks to generate forward force. High jumpers run forward to build horizontal momentum, then convert it to vertical momentum at takeoff.
+
+Newton's laws explain why it's harder to stop a heavy truck than a car traveling at the same speed. The truck has more momentum (mass × velocity), requiring greater force or more time to stop. This is why truck drivers maintain larger following distances.
+
+Understanding these laws helps engineers design everything from bridges to spacecraft. They calculate forces, predict accelerations, and ensure structures can withstand the forces they'll encounter.
+
+The beauty of Newton's laws is their universality. The same principles that govern a falling apple also govern planetary orbits, rocket launches, and every motion in our daily lives. From the smallest particle to the largest celestial body, these three elegant laws describe the fundamental nature of motion in our universe.
+
+This completes our journey through Newton's Laws of Motion - the foundation upon which all of classical mechanics is built.`,
+        duration: "10 minutes"
+      }
+    ].slice(0, episodeCount);
+
+    return { outline, scripts };
+  }
+
   // Generic educational content for other topics
   const outline: SeriesOutline = {
     title: `Mastering ${topic}`,

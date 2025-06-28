@@ -2,14 +2,14 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage.js";
 import { videoGenerationRequestSchema } from "@shared/schema";
-import { startVideoGeneration, getGenerationProgress } from "./services/videoGeneration.js";
+import { generateEducationalSeriesDirectly, getGenerationProgress as getDirectProgress } from "./services/directGeneration.js";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Generate video series
   app.post("/api/generate-series", async (req, res) => {
     try {
       const validatedData = videoGenerationRequestSchema.parse(req.body);
-      const result = await startVideoGeneration(validatedData);
+      const result = await generateEducationalSeriesDirectly(validatedData);
       res.json(result);
     } catch (error) {
       res.status(400).json({ 
@@ -22,7 +22,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/generation-progress/:seriesId", async (req, res) => {
     try {
       const seriesId = parseInt(req.params.seriesId);
-      const progress = getGenerationProgress(seriesId);
+      const progress = getDirectProgress(seriesId);
       
       if (!progress) {
         return res.status(404).json({ message: "Generation progress not found" });

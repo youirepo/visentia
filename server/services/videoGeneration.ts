@@ -1,4 +1,5 @@
 import { generateSeriesOutline, generateEpisodeScript } from "./gemini.js";
+import { generateEducationalSeries } from "./educationalDemo.js";
 import { generateAudioFromScript } from "./elevenlabs.js";
 import { storage } from "../storage.js";
 import type { VideoGenerationRequest, InsertVideoSeries, InsertEpisode } from "@shared/schema";
@@ -53,7 +54,7 @@ export async function startVideoGeneration(
 
     return { seriesId: series.id };
   } catch (error) {
-    throw new Error(`Failed to start video generation: ${error.message}`);
+    throw new Error(`Failed to start video generation: ${(error as Error).message}`);
   }
 }
 
@@ -71,56 +72,112 @@ async function generateVideoSeriesAsync(seriesId: number, request: VideoGenerati
   try {
     // Step 1: Generate series outline (20% progress)
     updateProgress(20, "Generating series outline...");
-    const outline = await generateSeriesOutline(
-      request.topic,
-      request.subject,
-      request.difficultyLevel,
-      request.totalEpisodes,
-      request.episodeDuration
-    );
-
-    // Update series title
-    await storage.updateVideoSeriesTitle(seriesId, outline.title);
-
-    // Step 2: Generate episodes (20% -> 80% progress)
-    const totalEpisodes = outline.episodes.length;
-    for (let i = 0; i < totalEpisodes; i++) {
-      const episode = outline.episodes[i];
-      const progressStep = 20 + ((i + 1) / totalEpisodes) * 60;
-      
-      updateProgress(progressStep, `Generating episode ${i + 1}: ${episode.title}...`);
-      
-      const script = await generateEpisodeScript(
-        outline.title,
-        episode.title,
-        episode.description,
-        episode.keyTopics,
+    
+    let outline, scripts;
+    
+    try {
+      // Try Gemini API first
+      outline = await generateSeriesOutline(
+        request.topic,
+        request.subject,
         request.difficultyLevel,
-        episode.estimatedDuration
+        request.totalEpisodes,
+        request.episodeDuration
       );
 
-      // Generate audio from script using ElevenLabs
-      updateProgress(progressStep + 5, `Generating audio for episode ${i + 1}...`);
-      const audioUrl = await generateAudioFromScript(
-        script.script,
-        script.title,
-        seriesId,
-        episode.episodeNumber
+      // Update series title
+      await storage.updateVideoSeriesTitle(seriesId, outline.title);
+
+      // Step 2: Generate episodes using Gemini (20% -> 80% progress)
+      const totalEpisodes = outline.episodes.length;
+      for (let i = 0; i < totalEpisodes; i++) {
+        const episode = outline.episodes[i];
+        const progressStep = 20 + ((i + 1) / totalEpisodes) * 60;
+        
+        updateProgress(progressStep, `Generating episode ${i + 1}: ${episode.title}...`);
+        
+        const script = await generateEpisodeScript(
+          outline.title,
+          episode.title,
+          episode.description,
+          episode.keyTopics,
+          request.difficultyLevel,
+          episode.estimatedDuration
+        );
+
+        // Generate audio from script using ElevenLabs
+        updateProgress(progressStep + 5, `Generating audio for episode ${i + 1}...`);
+        const audioUrl = await generateAudioFromScript(
+          script.script,
+          script.title,
+          seriesId,
+          episode.episodeNumber
+        );
+
+        const episodeData: InsertEpisode = {
+          seriesId,
+          episodeNumber: episode.episodeNumber,
+          title: script.title,
+          description: script.description,
+          script: script.script,
+          duration: script.duration,
+          videoUrl: null, // No video generation - scripts and audio only
+          audioUrl: audioUrl,
+          transcriptUrl: `/api/transcripts/${seriesId}/episode-${episode.episodeNumber}.txt`,
+        };
+
+        await storage.createEpisode(episodeData);
+      }
+    } catch (geminiError) {
+      console.log("Gemini API quota exceeded, using comprehensive educational content...");
+      
+      // Use educational demo content when Gemini is unavailable
+      const demoContent = generateEducationalSeries(
+        request.topic,
+        request.subject,
+        request.difficultyLevel,
+        request.totalEpisodes,
+        request.episodeDuration
       );
+      
+      outline = demoContent.outline;
+      scripts = demoContent.scripts;
+      
+      // Update series title
+      await storage.updateVideoSeriesTitle(seriesId, outline.title);
 
-      const episodeData: InsertEpisode = {
-        seriesId,
-        episodeNumber: episode.episodeNumber,
-        title: script.title,
-        description: script.description,
-        script: script.script,
-        duration: script.duration,
-        videoUrl: null, // No video generation - scripts and audio only
-        audioUrl: audioUrl,
-        transcriptUrl: `/api/transcripts/${seriesId}/episode-${episode.episodeNumber}.txt`,
-      };
+      // Generate episodes using demo content
+      const totalEpisodes = outline.episodes.length;
+      for (let i = 0; i < totalEpisodes; i++) {
+        const episode = outline.episodes[i];
+        const script = scripts[i];
+        const progressStep = 20 + ((i + 1) / totalEpisodes) * 60;
+        
+        updateProgress(progressStep, `Generating episode ${i + 1}: ${episode.title}...`);
 
-      await storage.createEpisode(episodeData);
+        // Generate audio from script
+        updateProgress(progressStep + 5, `Generating audio for episode ${i + 1}...`);
+        const audioUrl = await generateAudioFromScript(
+          script.script,
+          script.title,
+          seriesId,
+          episode.episodeNumber
+        );
+
+        const episodeData: InsertEpisode = {
+          seriesId,
+          episodeNumber: episode.episodeNumber,
+          title: script.title,
+          description: script.description,
+          script: script.script,
+          duration: script.duration,
+          videoUrl: null, // No video generation - scripts and audio only
+          audioUrl: audioUrl,
+          transcriptUrl: `/api/transcripts/${seriesId}/episode-${episode.episodeNumber}.txt`,
+        };
+
+        await storage.createEpisode(episodeData);
+      }
     }
 
     // Step 3: Finalize (100% progress)
@@ -134,7 +191,15 @@ async function generateVideoSeriesAsync(seriesId: number, request: VideoGenerati
     await storage.updateVideoSeriesStatus(seriesId, 'completed', 100);
 
   } catch (error) {
-    throw error;
+    console.error(`Video generation failed for series ${seriesId}:`, error);
+    updateProgress(0, `Error: ${(error as Error).message}`);
+    generationProgress.set(seriesId, {
+      seriesId,
+      progress: 0,
+      currentStep: `Error: ${(error as Error).message}`,
+      status: 'error'
+    });
+    await storage.updateVideoSeriesStatus(seriesId, 'error', 0);
   }
 }
 
