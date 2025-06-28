@@ -1,4 +1,5 @@
-import { generateSeriesOutline, generateEpisodeScript } from "./openai.js";
+import { generateSeriesOutline, generateEpisodeScript } from "./gemini.js";
+import { generateAudioFromScript } from "./elevenlabs.js";
 import { storage } from "../storage.js";
 import type { VideoGenerationRequest, InsertVideoSeries, InsertEpisode } from "@shared/schema";
 
@@ -44,7 +45,7 @@ export async function startVideoGeneration(
       generationProgress.set(series.id, {
         seriesId: series.id,
         progress: 0,
-        currentStep: `Error: ${error.message}`,
+        currentStep: `Error: ${(error as Error).message}`,
         status: 'error'
       });
       storage.updateVideoSeriesStatus(series.id, 'error', 0);
@@ -98,6 +99,15 @@ async function generateVideoSeriesAsync(seriesId: number, request: VideoGenerati
         episode.estimatedDuration
       );
 
+      // Generate audio from script using ElevenLabs
+      updateProgress(progressStep + 5, `Generating audio for episode ${i + 1}...`);
+      const audioUrl = await generateAudioFromScript(
+        script.script,
+        script.title,
+        seriesId,
+        episode.episodeNumber
+      );
+
       const episodeData: InsertEpisode = {
         seriesId,
         episodeNumber: episode.episodeNumber,
@@ -105,9 +115,9 @@ async function generateVideoSeriesAsync(seriesId: number, request: VideoGenerati
         description: script.description,
         script: script.script,
         duration: script.duration,
-        videoUrl: generateMockVideoUrl(seriesId, episode.episodeNumber),
-        audioUrl: generateMockAudioUrl(seriesId, episode.episodeNumber),
-        transcriptUrl: generateMockTranscriptUrl(seriesId, episode.episodeNumber),
+        videoUrl: null, // No video generation - scripts and audio only
+        audioUrl: audioUrl,
+        transcriptUrl: `/api/transcripts/${seriesId}/episode-${episode.episodeNumber}.txt`,
       };
 
       await storage.createEpisode(episodeData);
@@ -128,16 +138,9 @@ async function generateVideoSeriesAsync(seriesId: number, request: VideoGenerati
   }
 }
 
-// Mock URL generators (in production, these would be actual file URLs)
-function generateMockVideoUrl(seriesId: number, episodeNumber: number): string {
-  return `/api/videos/${seriesId}/episode-${episodeNumber}.mp4`;
-}
-
-function generateMockAudioUrl(seriesId: number, episodeNumber: number): string {
-  return `/api/audio/${seriesId}/episode-${episodeNumber}.mp3`;
-}
-
-function generateMockTranscriptUrl(seriesId: number, episodeNumber: number): string {
+// Generate transcript file from script content
+function generateTranscriptUrl(seriesId: number, episodeNumber: number, script: string): string {
+  // In production, save script as downloadable transcript file
   return `/api/transcripts/${seriesId}/episode-${episodeNumber}.txt`;
 }
 

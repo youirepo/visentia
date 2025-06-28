@@ -84,8 +84,8 @@ export default function ProgressIndicator({ seriesId, onComplete }: ProgressIndi
           ) : (
             <>
               <Loader2 className="animate-spin text-accent mx-auto mb-4" size={48} />
-              <h3 className="text-xl font-semibold text-neutral-900 mb-2">Generating Your Video Series</h3>
-              <p className="text-neutral-600">This may take a few minutes. Please don't close this page.</p>
+              <h3 className="text-xl font-semibold text-neutral-900 mb-2">Generating Your Educational Content</h3>
+              <p className="text-neutral-600">Creating scripts and audio narration. This may take a few minutes.</p>
             </>
           )}
         </div>
@@ -121,18 +121,18 @@ export default function ProgressIndicator({ seriesId, onComplete }: ProgressIndi
             ) : (
               <Circle className="text-neutral-400 mr-2" size={20} />
             )}
-            <span className="text-sm">Voice Narration</span>
+            <span className="text-sm">Audio Narration</span>
           </div>
           <div className={`flex items-center justify-center p-4 rounded-lg ${
-            getStepStatus('video') === 'completed' ? 'bg-secondary/10' : 
-            getStepStatus('video') === 'active' ? 'bg-primary/10' : 'bg-neutral-100'
+            getStepStatus('transcript') === 'completed' ? 'bg-secondary/10' : 
+            getStepStatus('transcript') === 'active' ? 'bg-primary/10' : 'bg-neutral-100'
           }`}>
-            {getStepStatus('video') === 'completed' ? (
+            {getStepStatus('transcript') === 'completed' ? (
               <CheckCircle className="text-secondary mr-2" size={20} />
             ) : (
               <Circle className="text-neutral-400 mr-2" size={20} />
             )}
-            <span className="text-sm">Video Compilation</span>
+            <span className="text-sm">Transcript Files</span>
           </div>
         </div>
       </div>

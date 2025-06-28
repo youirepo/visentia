@@ -75,7 +75,7 @@ export default function VideoGenerationForm({ onGenerationStart }: VideoGenerati
       <div className="max-w-4xl mx-auto">
         <h3 className="text-2xl font-bold text-neutral-900 mb-6 text-center flex items-center justify-center">
           <Wand2 className="text-accent mr-3" size={28} />
-          Create Your Educational Video Series
+          Create Your Educational Content Series
         </h3>
         
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -93,7 +93,7 @@ export default function VideoGenerationForm({ onGenerationStart }: VideoGenerati
             />
             <p className="text-sm text-neutral-500 mt-2 flex items-center">
               <Lightbulb className="mr-1" size={14} />
-              Be specific about the topic, target audience, and difficulty level for best results.
+              Generates educational scripts with professional narration. Be specific about the topic and difficulty level for best results.
             </p>
           </div>
 
@@ -176,7 +176,7 @@ export default function VideoGenerationForm({ onGenerationStart }: VideoGenerati
               className="bg-primary text-white px-8 py-4 rounded-lg font-semibold hover:bg-blue-600 transition-colors flex items-center"
             >
               <Wand2 className="mr-3" size={20} />
-              {generateMutation.isPending ? "Generating..." : "Generate Video Series"}
+{generateMutation.isPending ? "Generating..." : "Generate Educational Series"}
             </Button>
           </div>
         </form>
