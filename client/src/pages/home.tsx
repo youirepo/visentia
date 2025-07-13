@@ -79,7 +79,7 @@ export default function Home() {
             Generate Educational Videos with AI
           </h2>
           <p className="text-xl md:text-2xl text-blue-100 mb-8 max-w-3xl mx-auto">
-            Transform any educational topic into an engaging video series. Just describe what you want to learn, and our AI creates professional educational content for you.
+            Transform any educational topic into an engaging video. Just describe what you want to learn, and our AI creates professional educational content for you.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button className="bg-white text-primary px-8 py-3 rounded-lg font-semibold hover:bg-neutral-100 transition-colors">

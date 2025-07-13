@@ -5,6 +5,7 @@ export function generateEducationalSeries(
   topic: string,
   subject: string,
   difficultyLevel: string,
+  style: string,
   totalEpisodes: string,
   episodeDuration: string
 ): { outline: SeriesOutline; scripts: EpisodeScript[] } {

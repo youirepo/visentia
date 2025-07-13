@@ -84,8 +84,8 @@ export default function ProgressIndicator({ seriesId, onComplete }: ProgressIndi
           ) : (
             <>
               <Loader2 className="animate-spin text-accent mx-auto mb-4" size={48} />
-              <h3 className="text-xl font-semibold text-neutral-900 mb-2">Generating Your Educational Content</h3>
-              <p className="text-neutral-600">Creating scripts and audio narration. This may take a few minutes.</p>
+              <h3 className="text-xl font-semibold text-neutral-900 mb-2">Generating Your Educational Video</h3>
+              <p className="text-neutral-600">Creating script and audio narration. This may take a few minutes.</p>
             </>
           )}
         </div>

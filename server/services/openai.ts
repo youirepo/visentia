@@ -27,6 +27,7 @@ export async function generateSeriesOutline(
   topic: string,
   subject: string,
   difficultyLevel: string,
+  style: string,
   totalEpisodes: string,
   episodeDuration: string
 ): Promise<SeriesOutline> {
@@ -34,6 +35,7 @@ export async function generateSeriesOutline(
 
 Subject: ${subject}
 Difficulty Level: ${difficultyLevel}
+Style: ${style}
 Number of Episodes: ${totalEpisodes}
 Target Episode Duration: ${episodeDuration}
 
@@ -41,7 +43,14 @@ Generate a structured outline with:
 1. A clear series title
 2. Individual episode breakdown with titles, descriptions, key topics, and estimated duration
 
-Ensure the content is educational, well-structured, and appropriate for the specified difficulty level. The episodes should build upon each other logically.
+Ensure the content is educational, well-structured, and appropriate for the specified difficulty level and style. The episodes should build upon each other logically.
+
+Style Guidelines:
+- Engaging and Interactive: Include questions, activities, and interactive elements
+- Formal and Academic: Use precise terminology and structured explanations
+- Story-based Learning: Frame concepts within narratives and real-world scenarios
+- Visual and Demonstrative: Focus on visual explanations and demonstrations
+- Conversational and Friendly: Use warm, approachable language with relatable examples
 
 Respond with JSON in this exact format:
 {
@@ -87,6 +96,7 @@ export async function generateEpisodeScript(
   episodeDescription: string,
   keyTopics: string[],
   difficultyLevel: string,
+  style: string,
   targetDuration: string
 ): Promise<EpisodeScript> {
   const prompt = `Create a detailed educational video script for:
@@ -96,6 +106,7 @@ Episode: ${episodeTitle}
 Description: ${episodeDescription}
 Key Topics: ${keyTopics.join(", ")}
 Difficulty Level: ${difficultyLevel}
+Style: ${style}
 Target Duration: ${targetDuration}
 
 Generate a comprehensive script that includes:
@@ -106,6 +117,13 @@ Generate a comprehensive script that includes:
 5. A conclusion that summarizes key points
 
 The script should be conversational, educational, and suitable for voice narration. Include timing cues and ensure the content fits the target duration.
+
+Style Guidelines:
+- Engaging and Interactive: Include questions, activities, and interactive elements
+- Formal and Academic: Use precise terminology and structured explanations
+- Story-based Learning: Frame concepts within narratives and real-world scenarios
+- Visual and Demonstrative: Focus on visual explanations and demonstrations
+- Conversational and Friendly: Use warm, approachable language with relatable examples
 
 Respond with JSON in this exact format:
 {

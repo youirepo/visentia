@@ -54,6 +54,7 @@ export const videoGenerationRequestSchema = z.object({
   topic: z.string().min(10, "Topic must be at least 10 characters"),
   subject: z.string().min(1, "Subject is required"),
   difficultyLevel: z.string().min(1, "Difficulty level is required"),
+  style: z.string().min(1, "Style is required"),
   totalEpisodes: z.string().min(1, "Number of episodes is required"),
   episodeDuration: z.string().min(1, "Episode duration is required"),
 });

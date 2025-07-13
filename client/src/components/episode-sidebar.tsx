@@ -47,12 +47,12 @@ export default function EpisodeSidebar({
 
   return (
     <div className="space-y-6">
-      {/* Series Information */}
+      {/* Video Information */}
       <Card className="bg-white rounded-2xl shadow-lg">
         <CardContent className="p-6">
           <h4 className="text-lg font-semibold text-neutral-900 mb-4 flex items-center">
             <ListOrdered className="text-primary mr-2" size={20} />
-            Series: {series.title}
+            {episodes.length > 1 ? `Series: ${series.title}` : `Video: ${series.title}`}
           </h4>
           <div className="space-y-3">
             <div className="flex justify-between text-sm">
@@ -64,72 +64,79 @@ export default function EpisodeSidebar({
               <span className="font-medium">{series.difficultyLevel}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-neutral-600">Total Duration:</span>
+              <span className="text-neutral-600">Duration:</span>
               <span className="font-medium">{totalDuration} minutes</span>
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-neutral-600">Progress:</span>
-              <span className="font-medium text-secondary">{Math.round(progressPercentage)}%</span>
+            {episodes.length > 1 && (
+              <>
+                <div className="flex justify-between text-sm">
+                  <span className="text-neutral-600">Progress:</span>
+                  <span className="font-medium text-secondary">{Math.round(progressPercentage)}%</span>
+                </div>
+                <div className="mt-4">
+                  <Progress value={progressPercentage} className="h-2" />
+                </div>
+              </>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Episode List - Only show for multiple episodes */}
+      {episodes.length > 1 && (
+        <Card className="bg-white rounded-2xl shadow-lg">
+          <CardContent className="p-6">
+            <h4 className="text-lg font-semibold text-neutral-900 mb-4">Episodes</h4>
+            
+            <div className="space-y-3">
+              {episodes.map((episode, index) => (
+                <div
+                  key={episode.id}
+                  onClick={() => onEpisodeSelect(index)}
+                  className={`flex items-center p-3 rounded-lg cursor-pointer transition-colors ${
+                    index === currentEpisodeIndex
+                      ? 'bg-primary/5 border border-primary/20'
+                      : 'hover:bg-neutral-50'
+                  }`}
+                >
+                  <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium mr-3 ${
+                    index === currentEpisodeIndex
+                      ? 'bg-primary text-white'
+                      : 'bg-neutral-200 text-neutral-600'
+                  }`}>
+                    {episode.episodeNumber}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-neutral-900 truncate">
+                      {episode.title}
+                    </p>
+                    <p className="text-xs text-neutral-500">
+                      {episode.duration} • {episode.isWatched ? 'Watched' : 'Not watched'}
+                    </p>
+                  </div>
+                  {episode.isWatched && (
+                    <CheckCircle className="text-secondary flex-shrink-0" size={16} />
+                  )}
+                </div>
+              ))}
             </div>
-          </div>
-          
-          <div className="mt-4">
-            <Progress value={progressPercentage} className="h-2" />
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
-      {/* Episode List */}
+      {/* Download Section */}
       <Card className="bg-white rounded-2xl shadow-lg">
         <CardContent className="p-6">
-          <h4 className="text-lg font-semibold text-neutral-900 mb-4">Episodes</h4>
-          
-          <div className="space-y-3">
-            {episodes.map((episode, index) => (
-              <div
-                key={episode.id}
-                onClick={() => onEpisodeSelect(index)}
-                className={`flex items-center p-3 rounded-lg cursor-pointer transition-colors ${
-                  index === currentEpisodeIndex
-                    ? 'bg-primary/5 border border-primary/20'
-                    : 'hover:bg-neutral-50'
-                }`}
-              >
-                <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium mr-3 ${
-                  index === currentEpisodeIndex
-                    ? 'bg-primary text-white'
-                    : 'bg-neutral-200 text-neutral-600'
-                }`}>
-                  {episode.episodeNumber}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-neutral-900 truncate">
-                    {episode.title}
-                  </p>
-                  <p className="text-xs text-neutral-500">
-                    {episode.duration} • {episode.isWatched ? 'Watched' : 'Not watched'}
-                  </p>
-                </div>
-                {episode.isWatched && (
-                  <CheckCircle className="text-secondary flex-shrink-0" size={16} />
-                )}
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Download Series */}
-      <Card className="bg-white rounded-2xl shadow-lg">
-        <CardContent className="p-6">
-          <h4 className="text-lg font-semibold text-neutral-900 mb-4">Download Series</h4>
+          <h4 className="text-lg font-semibold text-neutral-900 mb-4">
+            {episodes.length > 1 ? 'Download Series' : 'Download Video'}
+          </h4>
           <div className="space-y-3">
             <Button
               onClick={handleDownloadAll}
               className="w-full bg-primary text-white hover:bg-blue-600 flex items-center justify-center"
             >
               <Download className="mr-2" size={16} />
-              Download All Episodes
+              {episodes.length > 1 ? 'Download All Episodes' : 'Download Video'}
             </Button>
             <Button
               onClick={handleDownloadTranscript}

@@ -69,9 +69,12 @@ async function generateVideoSeriesAsync(seriesId: number, request: VideoGenerati
     storage.updateVideoSeriesStatus(seriesId, 'generating', progress);
   };
 
+  // Check if this is a single video request
+  const isSingleVideo = request.totalEpisodes === "1 episode" || request.totalEpisodes.includes("1");
+
   try {
-    // Step 1: Generate series outline (20% progress)
-    updateProgress(20, "Generating series outline...");
+    // Step 1: Generate content outline (20% progress)
+    updateProgress(20, isSingleVideo ? "Generating video content..." : "Generating series outline...");
     
     let outline, scripts;
     
@@ -81,6 +84,7 @@ async function generateVideoSeriesAsync(seriesId: number, request: VideoGenerati
         request.topic,
         request.subject,
         request.difficultyLevel,
+        request.style,
         request.totalEpisodes,
         request.episodeDuration
       );
@@ -88,13 +92,16 @@ async function generateVideoSeriesAsync(seriesId: number, request: VideoGenerati
       // Update series title
       await storage.updateVideoSeriesTitle(seriesId, outline.title);
 
-      // Step 2: Generate episodes using Gemini (20% -> 80% progress)
+      // Step 2: Generate episode(s) using Gemini (20% -> 80% progress)
       const totalEpisodes = outline.episodes.length;
       for (let i = 0; i < totalEpisodes; i++) {
         const episode = outline.episodes[i];
         const progressStep = 20 + ((i + 1) / totalEpisodes) * 60;
         
-        updateProgress(progressStep, `Generating episode ${i + 1}: ${episode.title}...`);
+        updateProgress(progressStep, isSingleVideo 
+          ? `Generating video: ${episode.title}...` 
+          : `Generating episode ${i + 1}: ${episode.title}...`
+        );
         
         const script = await generateEpisodeScript(
           outline.title,
@@ -102,11 +109,15 @@ async function generateVideoSeriesAsync(seriesId: number, request: VideoGenerati
           episode.description,
           episode.keyTopics,
           request.difficultyLevel,
+          request.style,
           episode.estimatedDuration
         );
 
         // Generate audio from script using ElevenLabs
-        updateProgress(progressStep + 5, `Generating audio for episode ${i + 1}...`);
+        updateProgress(progressStep + 5, isSingleVideo 
+          ? `Generating audio for video...` 
+          : `Generating audio for episode ${i + 1}...`
+        );
         const audioUrl = await generateAudioFromScript(
           script.script,
           script.title,
@@ -136,6 +147,7 @@ async function generateVideoSeriesAsync(seriesId: number, request: VideoGenerati
         request.topic,
         request.subject,
         request.difficultyLevel,
+        request.style,
         request.totalEpisodes,
         request.episodeDuration
       );
@@ -153,10 +165,16 @@ async function generateVideoSeriesAsync(seriesId: number, request: VideoGenerati
         const script = scripts[i];
         const progressStep = 20 + ((i + 1) / totalEpisodes) * 60;
         
-        updateProgress(progressStep, `Generating episode ${i + 1}: ${episode.title}...`);
+        updateProgress(progressStep, isSingleVideo 
+          ? `Generating video: ${episode.title}...` 
+          : `Generating episode ${i + 1}: ${episode.title}...`
+        );
 
         // Generate audio from script
-        updateProgress(progressStep + 5, `Generating audio for episode ${i + 1}...`);
+        updateProgress(progressStep + 5, isSingleVideo 
+          ? `Generating audio for video...` 
+          : `Generating audio for episode ${i + 1}...`
+        );
         const audioUrl = await generateAudioFromScript(
           script.script,
           script.title,
@@ -181,11 +199,11 @@ async function generateVideoSeriesAsync(seriesId: number, request: VideoGenerati
     }
 
     // Step 3: Finalize (100% progress)
-    updateProgress(100, "Video series generation completed!");
+    updateProgress(100, isSingleVideo ? "Video generation completed!" : "Video series generation completed!");
     generationProgress.set(seriesId, {
       seriesId,
       progress: 100,
-      currentStep: "Generation completed successfully",
+      currentStep: isSingleVideo ? "Video generation completed successfully" : "Generation completed successfully",
       status: 'completed'
     });
     await storage.updateVideoSeriesStatus(seriesId, 'completed', 100);

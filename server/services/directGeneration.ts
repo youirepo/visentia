@@ -48,6 +48,7 @@ async function generateContentAsync(seriesId: number, request: VideoGenerationRe
       request.topic,
       request.subject,
       request.difficultyLevel,
+      request.style,
       request.totalEpisodes,
       request.episodeDuration
     );
