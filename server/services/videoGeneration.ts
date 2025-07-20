@@ -1,4 +1,4 @@
-import { generateSeriesOutline, generateEpisodeScript } from "./gemini.js";
+import { generateSeriesOutline, generateEpisodeScript, generateExplainerScript } from "./openai.js";
 import { generateEducationalSeries } from "./educationalDemo.js";
 import { generateAudioFromScript } from "./elevenlabs.js";
 import { storage } from "../storage.js";
@@ -79,70 +79,118 @@ async function generateVideoSeriesAsync(seriesId: number, request: VideoGenerati
     let outline, scripts;
     
     try {
-      // Try Gemini API first
-      outline = await generateSeriesOutline(
-        request.topic,
-        request.subject,
-        request.difficultyLevel,
-        request.style,
-        request.totalEpisodes,
-        request.episodeDuration
-      );
-
-      // Update series title
-      await storage.updateVideoSeriesTitle(seriesId, outline.title);
-
-      // Step 2: Generate episode(s) using Gemini (20% -> 80% progress)
-      const totalEpisodes = outline.episodes.length;
-      for (let i = 0; i < totalEpisodes; i++) {
-        const episode = outline.episodes[i];
-        const progressStep = 20 + ((i + 1) / totalEpisodes) * 60;
+      // Try GPT-4 API first for high-quality script generation
+      console.log("Using GPT-4 for script generation...");
+      
+      if (isSingleVideo) {
+        // For single videos, generate explainer script directly from user prompt
+        updateProgress(30, "Generating explainer script from your prompt...");
         
-        updateProgress(progressStep, isSingleVideo 
-          ? `Generating video: ${episode.title}...` 
-          : `Generating episode ${i + 1}: ${episode.title}...`
-        );
-        
-        const script = await generateEpisodeScript(
-          outline.title,
-          episode.title,
-          episode.description,
-          episode.keyTopics,
+        const script = await generateExplainerScript(
+          request.topic,
+          request.subject,
           request.difficultyLevel,
           request.style,
-          episode.estimatedDuration
+          request.episodeDuration
         );
 
+        // Create a simple outline for single video
+        outline = {
+          title: script.title,
+          episodes: [{
+            episodeNumber: 1,
+            title: script.title,
+            description: script.description,
+            keyTopics: [request.topic],
+            estimatedDuration: script.duration
+          }]
+        };
+
+        // Update series title
+        await storage.updateVideoSeriesTitle(seriesId, script.title);
+
         // Generate audio from script using ElevenLabs
-        updateProgress(progressStep + 5, isSingleVideo 
-          ? `Generating audio for video...` 
-          : `Generating audio for episode ${i + 1}...`
-        );
+        updateProgress(70, "Generating audio narration for your video...");
         const audioUrl = await generateAudioFromScript(
           script.script,
           script.title,
           seriesId,
-          episode.episodeNumber
+          1
         );
 
         const episodeData: InsertEpisode = {
           seriesId,
-          episodeNumber: episode.episodeNumber,
+          episodeNumber: 1,
           title: script.title,
           description: script.description,
           script: script.script,
           duration: script.duration,
           videoUrl: null, // No video generation - scripts and audio only
           audioUrl: audioUrl,
-          transcriptUrl: `/api/transcripts/${seriesId}/episode-${episode.episodeNumber}.txt`,
+          transcriptUrl: `/api/transcripts/${seriesId}/episode-1.txt`,
         };
 
         await storage.createEpisode(episodeData);
+      } else {
+        // For series, use the original outline and episode generation
+        outline = await generateSeriesOutline(
+          request.topic,
+          request.subject,
+          request.difficultyLevel,
+          request.style,
+          request.totalEpisodes,
+          request.episodeDuration
+        );
+
+        // Update series title
+        await storage.updateVideoSeriesTitle(seriesId, outline.title);
+
+        // Step 2: Generate episode(s) using GPT-4 (20% -> 80% progress)
+        const totalEpisodes = outline.episodes.length;
+        for (let i = 0; i < totalEpisodes; i++) {
+          const episode = outline.episodes[i];
+          const progressStep = 20 + ((i + 1) / totalEpisodes) * 60;
+          
+          updateProgress(progressStep, `Generating episode ${i + 1} script: ${episode.title}...`);
+          
+          const script = await generateEpisodeScript(
+            outline.title,
+            episode.title,
+            episode.description,
+            episode.keyTopics,
+            request.difficultyLevel,
+            request.style,
+            episode.estimatedDuration
+          );
+
+          // Generate audio from script using ElevenLabs
+          updateProgress(progressStep + 5, `Generating audio narration for episode ${i + 1}...`);
+          const audioUrl = await generateAudioFromScript(
+            script.script,
+            script.title,
+            seriesId,
+            episode.episodeNumber
+          );
+
+          const episodeData: InsertEpisode = {
+            seriesId,
+            episodeNumber: episode.episodeNumber,
+            title: script.title,
+            description: script.description,
+            script: script.script,
+            duration: script.duration,
+            videoUrl: null, // No video generation - scripts and audio only
+            audioUrl: audioUrl,
+            transcriptUrl: `/api/transcripts/${seriesId}/episode-${episode.episodeNumber}.txt`,
+          };
+
+          await storage.createEpisode(episodeData);
+        }
       }
-    } catch (geminiError) {
-      console.log("Gemini API quota exceeded, using comprehensive educational content...");
+    } catch (openaiError) {
+      console.log("GPT-4 API error, falling back to educational demo content...", openaiError);
       
-      // Use educational demo content when Gemini is unavailable
+      // Use educational demo content when GPT-4 is unavailable
       const demoContent = generateEducationalSeries(
         request.topic,
         request.subject,

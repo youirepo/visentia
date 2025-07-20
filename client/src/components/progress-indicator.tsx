@@ -85,7 +85,7 @@ export default function ProgressIndicator({ seriesId, onComplete }: ProgressIndi
             <>
               <Loader2 className="animate-spin text-accent mx-auto mb-4" size={48} />
               <h3 className="text-xl font-semibold text-neutral-900 mb-2">Generating Your Educational Video</h3>
-              <p className="text-neutral-600">Creating script and audio narration. This may take a few minutes.</p>
+              <p className="text-neutral-600">Using GPT-4 to create engaging script and professional narration. This may take a few minutes.</p>
             </>
           )}
         </div>
@@ -110,7 +110,7 @@ export default function ProgressIndicator({ seriesId, onComplete }: ProgressIndi
             ) : (
               <Circle className="text-neutral-400 mr-2" size={20} />
             )}
-            <span className="text-sm">Script Generation</span>
+            <span className="text-sm">GPT-4 Script Generation</span>
           </div>
           <div className={`flex items-center justify-center p-4 rounded-lg ${
             getStepStatus('voice') === 'completed' ? 'bg-secondary/10' : 
