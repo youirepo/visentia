@@ -1,5 +1,11 @@
 import OpenAI from "openai";
 
+// Debug: Check if API key is loaded
+console.log("OpenAI API Key loaded:", process.env.OPENAI_API_KEY ? "YES" : "NO");
+if (process.env.OPENAI_API_KEY) {
+  console.log("API Key starts with:", process.env.OPENAI_API_KEY.substring(0, 7) + "...");
+}
+
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ 
   apiKey: process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY_ENV_VAR || "default_key" 

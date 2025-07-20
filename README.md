@@ -11,14 +11,14 @@ Visentia is a modern web application that generates educational videos using GPT
 - **GPT-4 Integration**: Uses OpenAI's GPT-4 for high-quality script generation
 - **Style Selection**: 5 presentation styles (Engaging, Formal, Story-based, Visual, Conversational)
 - **Varying Lengths**: 5 duration options from 2-15 minutes
-- **Professional Narration**: ElevenLabs integration for audio generation
+- **Professional Narration**: OpenAI TTS integration for audio generation
 - **Adaptive UI**: Components that adapt for single vs multiple videos
 
 ### Technical Stack
 - **Frontend**: React 18 with TypeScript, Tailwind CSS, shadcn/ui
 - **Backend**: Node.js with Express.js, TypeScript
 - **AI**: OpenAI GPT-4 for script generation
-- **Audio**: ElevenLabs for text-to-speech
+- **Audio**: OpenAI TTS for text-to-speech
 - **Database**: PostgreSQL with Drizzle ORM
 
 ## Environment Variables
@@ -26,13 +26,10 @@ Visentia is a modern web application that generates educational videos using GPT
 Create a `.env` file in the root directory with the following variables:
 
 ```env
-# OpenAI API Key (Required for GPT-4 script generation)
+# OpenAI API Key (Required for GPT-4 script generation and TTS)
 OPENAI_API_KEY=your_openai_api_key_here
 
-# ElevenLabs API Key (Optional - for professional audio narration)
-ELEVENLABS_API_KEY=your_elevenlabs_api_key_here
-
-# Database Configuration
+# Database Configuration (Optional - for production)
 DATABASE_URL=your_database_url_here
 ```
 

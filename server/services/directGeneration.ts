@@ -1,5 +1,5 @@
 import { generateEducationalSeries } from "./educationalDemo.js";
-import { generateAudioFromScript } from "./elevenlabs.js";
+import { generateAudioFromScript } from "./openai-tts.js";
 import { storage } from "../storage.js";
 import type { VideoGenerationRequest, InsertVideoSeries, InsertEpisode } from "@shared/schema";
 

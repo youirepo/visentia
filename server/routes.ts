@@ -1,5 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import fs from "fs";
+import path from "path";
 import { storage } from "./storage.js";
 import { videoGenerationRequestSchema } from "@shared/schema";
 import { generateEducationalSeriesDirectly, getGenerationProgress as getDirectProgress } from "./services/directGeneration.js";
@@ -82,6 +84,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ message: "Failed to update episode status" });
+    }
+  });
+
+  // Serve audio files
+  app.get("/api/audio/:filename", (req, res) => {
+    try {
+      const { filename } = req.params;
+      const audioPath = path.join(process.cwd(), 'server', 'audio', filename);
+      
+      if (!fs.existsSync(audioPath)) {
+        return res.status(404).json({ message: "Audio file not found" });
+      }
+      
+      res.setHeader('Content-Type', 'audio/mpeg');
+      res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
+      fs.createReadStream(audioPath).pipe(res);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to serve audio file" });
     }
   });
 
