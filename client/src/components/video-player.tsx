@@ -44,18 +44,27 @@ export default function VideoPlayer({
           // Ensure audio is enabled and volume is up
           videoRef.current.muted = false;
           videoRef.current.volume = volume;
-          await videoRef.current.play();
+          
+          // Try to play with audio first
+          try {
+            await videoRef.current.play();
+          } catch (audioError) {
+            console.log('Audio playback blocked, trying muted first:', audioError);
+            // If audio playback fails, try muted first then unmute
+            videoRef.current.muted = true;
+            await videoRef.current.play();
+            // Wait a bit then unmute
+            setTimeout(() => {
+              if (videoRef.current) {
+                videoRef.current.muted = false;
+                videoRef.current.volume = volume;
+              }
+            }, 100);
+          }
         }
         setIsPlaying(!isPlaying);
       } catch (error) {
         console.error('Error playing video:', error);
-        // If autoplay fails, try with muted first then unmute
-        if (videoRef.current) {
-          videoRef.current.muted = true;
-          await videoRef.current.play();
-          videoRef.current.muted = false;
-          videoRef.current.volume = volume;
-        }
       }
     }
   };
@@ -76,6 +85,15 @@ export default function VideoPlayer({
       // Ensure audio is enabled
       videoRef.current.muted = false;
       videoRef.current.volume = volume;
+      
+      // Debug audio state
+      console.log('Video loaded metadata:', {
+        duration: videoRef.current.duration,
+        muted: videoRef.current.muted,
+        volume: videoRef.current.volume,
+        readyState: videoRef.current.readyState,
+        networkState: videoRef.current.networkState
+      });
     }
   };
 
@@ -155,8 +173,11 @@ export default function VideoPlayer({
               onLoadedMetadata={handleLoadedMetadata}
               onPlay={() => setIsPlaying(true)}
               onPause={() => setIsPlaying(false)}
+              onClick={handlePlay}
               controls={false}
               preload="metadata"
+              muted={false}
+              autoPlay={false}
             >
               <source src={currentEpisode.videoUrl} type="video/mp4" />
               Your browser does not support the video tag.
