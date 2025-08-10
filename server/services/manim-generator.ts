@@ -1,102 +1,153 @@
-import OpenAI from "openai";
+import { openai } from "./openai-client";
+import { ManimCodeValidator } from "./manim-validator.js";
 
-const openai = new OpenAI({ 
-  apiKey: process.env.OPENAI_API_KEY || "default_key" 
-});
+export class ManimGenerator {
+  private validator: ManimCodeValidator;
 
-export interface ManimScene {
-  sceneName: string;
-  code: string;
-  duration: number;
-}
+  constructor() {
+    this.validator = new ManimCodeValidator();
+  }
 
-export interface ManimFile {
-  fileName: string;
-  filePath: string;
-  fullCode: string;
-}
+  async generateManimCode(
+    seriesTitle: string,
+    episodeTitle: string,
+    content: string,
+    maxRetries: number = 3
+  ): Promise<string> {
+    console.log(`Generating Manim code for: ${seriesTitle} - ${episodeTitle}`);
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        // Generate initial code with ChatGPT
+        const generatedCode = await this.generateCodeWithChatGPT(
+          seriesTitle,
+          episodeTitle,
+          content
+        );
 
-// Fallback function to create simple, working Manim code
-function createFallbackManimCode(script: string, episodeTitle: string): ManimScene {
-  // Clean and split the script into manageable chunks
-  const cleanScript = script.replace(/[^\w\s.,!?-]/g, '').trim();
-  const sentences = cleanScript.split(/[.!?]+/).filter(s => s.trim().length > 10);
-  
-  // Use more sentences for longer content - take up to 12 sentences
-  const selectedSentences = sentences.slice(0, Math.min(12, sentences.length));
-  const chunks = selectedSentences.map(s => s.trim());
-  
-  const sceneCode = `class ${episodeTitle.replace(/[^a-zA-Z0-9]/g, '')}Scene(Scene):
-    def construct(self):
-        # Title
-        title = Text("${episodeTitle}", font_size=36, color=WHITE)
-        title.to_edge(UP)
-        self.play(Write(title))
-        self.wait(2)
-        self.play(FadeOut(title))
-        self.wait(1)
+        console.log(`Attempt ${attempt}: Generated initial Manim code`);
+
+        // Validate and potentially fix the code
+        const validationResult = await this.validator.validateAndFix(generatedCode);
         
-        # Content sections
-        ${chunks.map((chunk, index) => {
-          const text = chunk.replace(/"/g, '\\"').replace(/\n/g, '\\n');
-          if (index === 0) {
-            return `# Section ${index + 1}
-        section${index + 1} = Text("${text}", font_size=18, color=YELLOW, line_spacing=0.8)
-        section${index + 1}.move_to(ORIGIN)
-        section${index + 1}.scale_to_fit_width(12)  # Scale to fit screen width
-        self.play(FadeIn(section${index + 1}), FadeOut(title))
-        self.wait(8)
-        self.play(FadeOut(section${index + 1}))`;
-          } else {
-            return `# Section ${index + 1}
-        section${index + 1} = Text("${text}", font_size=18, color=YELLOW, line_spacing=0.8)
-        section${index + 1}.move_to(ORIGIN)
-        section${index + 1}.scale_to_fit_width(12)  # Scale to fit screen width
-        self.play(FadeIn(section${index + 1}))
-        self.wait(8)
-        self.play(FadeOut(section${index + 1}))`;
+        if (validationResult.isValid) {
+          console.log(`Attempt ${attempt}: Code validation successful`);
+          return validationResult.code;
+        }
+
+        // If validation failed but we have a fixed version, try that
+        if (validationResult.fixedCode) {
+          console.log(`Attempt ${attempt}: Trying fixed code from validator`);
+          const retryValidation = await this.validator.validateAndFix(validationResult.fixedCode);
+          
+          if (retryValidation.isValid) {
+            console.log(`Attempt ${attempt}: Fixed code validation successful`);
+            return retryValidation.code;
           }
-        }).join('\n        ')}
-        
-        # Conclusion
-        conclusion = Text("Thank you for learning about ${episodeTitle.split(':')[0]}!", font_size=28, color=GREEN)
-        conclusion.move_to(ORIGIN)
-        self.play(FadeIn(conclusion))
-        self.wait(3)
-        
-        # Fade out conclusion at the end
-        self.play(FadeOut(conclusion))`;
-  
-  return {
-    sceneName: `${episodeTitle.replace(/[^a-zA-Z0-9]/g, '')}Scene`,
-    code: sceneCode,
-    duration: chunks.length * 8 + 5 // 8 seconds per chunk + 5 seconds for title and conclusion
-  };
-}
+        }
 
-export async function generateManimCode(
-  script: string,
-  episodeTitle: string,
-  targetDuration: string
-): Promise<ManimScene> {
-  // For now, always use fallback to ensure working videos
-  console.log(`Using fallback Manim code for "${episodeTitle}" to avoid MathTex issues`);
-  return createFallbackManimCode(script, episodeTitle);
-}
+        // If we still have issues and this isn't the last attempt, try to regenerate
+        if (attempt < maxRetries) {
+          console.log(`Attempt ${attempt}: Validation failed, regenerating with feedback`);
+          // Use the validation feedback to improve the next generation
+          const improvedCode = await this.generateCodeWithChatGPT(
+            seriesTitle,
+            episodeTitle,
+            content,
+            validationResult.feedback
+          );
+          
+          // Try the improved code
+          const improvedValidation = await this.validator.validateAndFix(improvedCode);
+          if (improvedValidation.isValid) {
+            console.log(`Attempt ${attempt}: Improved code validation successful`);
+            return improvedValidation.code;
+          }
+        }
 
-export function createManimFile(scene: ManimScene, seriesId: number, episodeNumber: number): ManimFile {
-  const fileName = `series-${seriesId}-episode-${episodeNumber}-${Date.now()}.py`;
-  const filePath = `server/manim/${fileName}`;
-  
-  const fullCode = `from manim import *
-import numpy as np
+      } catch (error) {
+        console.error(`Attempt ${attempt} failed:`, error);
+        if (attempt === maxRetries) {
+          throw new Error(`Failed to generate valid Manim code after ${maxRetries} attempts: ${error}`);
+        }
+      }
+    }
 
-${scene.code}
+    throw new Error(`Failed to generate valid Manim code after ${maxRetries} attempts`);
+  }
 
-if __name__ == "__main__":
-    scene = ${scene.sceneName}()
-    scene.render()
-`;
-  
-  return { fileName, filePath, fullCode };
+  private async generateCodeWithChatGPT(
+    seriesTitle: string,
+    episodeTitle: string,
+    content: string,
+    previousFeedback?: string
+  ): Promise<string> {
+    const systemPrompt = `You are an expert Manim developer. Generate clean, valid Manim code for educational videos.
+
+IMPORTANT REQUIREMENTS:
+1. Use ONLY valid Manim syntax and classes
+2. Import statements must be correct and complete
+3. Scene class must inherit from Scene
+4. All methods must be properly defined
+5. No undefined variables or functions
+6. Use proper Python syntax throughout
+7. Ensure all text rendering uses proper Manim text classes
+8. Animation timing should be reasonable (not too fast or slow)
+
+${previousFeedback ? `PREVIOUS FEEDBACK TO ADDRESS:\n${previousFeedback}\n\n` : ''}
+Generate ONLY the Python code, no explanations or markdown formatting.`;
+
+    const userPrompt = `Create a Manim scene for:
+Series: ${seriesTitle}
+Episode: ${episodeTitle}
+Content: ${content}
+
+The scene should:
+- Start with a title showing the series and episode
+- Present the content in an engaging way
+- Use smooth animations and transitions
+- End with a clean conclusion
+
+Generate ONLY the Python code:`;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt }
+      ],
+      temperature: 0.7,
+      max_tokens: 2000
+    });
+
+    const generatedCode = response.choices[0]?.message?.content;
+    if (!generatedCode) {
+      throw new Error("Failed to generate code from ChatGPT");
+    }
+
+    // Clean up the response to extract just the code
+    return this.extractCodeFromResponse(generatedCode);
+  }
+
+  private extractCodeFromResponse(response: string): string {
+    // Remove markdown code blocks if present
+    let code = response.replace(/```python\n?/g, '').replace(/```\n?/g, '');
+    
+    // Remove any leading/trailing whitespace
+    code = code.trim();
+    
+    // If the response starts with "import" or "from", it's likely pure code
+    if (code.startsWith('import') || code.startsWith('from') || code.startsWith('class')) {
+      return code;
+    }
+    
+    // Try to find code blocks in the response
+    const codeBlockMatch = response.match(/```(?:python)?\n?([\s\S]*?)\n?```/);
+    if (codeBlockMatch) {
+      return codeBlockMatch[1].trim();
+    }
+    
+    // If no clear code block, return the cleaned response
+    return code;
+  }
 } 

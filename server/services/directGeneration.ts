@@ -1,8 +1,10 @@
 import { generateEducationalSeries } from "./educationalDemo.js";
 import { generateAudioFromScript } from "./openai-tts.js";
-import { generateManimCode, createManimFile } from "./manim-generator.js";
+import { ManimGenerator } from "./manim-generator.js";
+import { ManimCodeValidator } from "./manim-validator.js";
 import { renderManimVideo, combineAudioAndVideo, cleanupTempFiles } from "./video-processor.js";
 import { storage } from "../storage.js";
+import fs from "fs";
 import type { VideoGenerationRequest, InsertVideoSeries, InsertEpisode } from "@shared/schema";
 
 const generationProgress = new Map<number, {
@@ -81,16 +83,79 @@ async function generateContentAsync(seriesId: number, request: VideoGenerationRe
 
       // Generate Manim code and render video
       updateProgress(progressStep + 5, `Generating Manim animation for episode ${i + 1}...`);
-      const manimScene = await generateManimCode(
-        script.script,
+      
+      const manimGenerator = new ManimGenerator();
+      const manimCode = await manimGenerator.generateManimCode(
+        outline.title,
         script.title,
-        script.duration
+        script.script
       );
       
-      const manimFile = createManimFile(manimScene, seriesId, episode.episodeNumber);
+      // Create the Manim file
+      const fileName = `series-${seriesId}-episode-${episode.episodeNumber}-${Date.now()}.py`;
+      const filePath = `server/manim/${fileName}`;
       
+      // Extract the actual class name from the generated code
+      const classNameMatch = manimCode.match(/class\s+(\w+)\s*\(/);
+      const className = classNameMatch ? classNameMatch[1] : script.title.replace(/[^a-zA-Z0-9]/g, '');
+      
+      const fullCode = `from manim import *
+import numpy as np
+
+${manimCode}
+
+if __name__ == "__main__":
+    scene = ${className}()
+    scene.render()
+`;
+      
+      const manimFile = { fileName, filePath, fullCode };
+      
+      // Try to render the video, with retry logic if it fails
       updateProgress(progressStep + 10, `Rendering video for episode ${i + 1}...`);
-      const videoPath = await renderManimVideo(manimFile, seriesId, episode.episodeNumber);
+      let videoPath: string;
+      let retryCount = 0;
+      const maxRetries = 2;
+      
+      while (retryCount <= maxRetries) {
+        try {
+          videoPath = await renderManimVideo(manimFile, seriesId, episode.episodeNumber);
+          break; // Success, exit the retry loop
+        } catch (error) {
+          retryCount++;
+          if (retryCount > maxRetries) {
+            throw error; // Give up after max retries
+          }
+          
+          console.log(`Video rendering failed, attempt ${retryCount}/${maxRetries}. Error: ${error}`);
+          updateProgress(progressStep + 10, `Video rendering failed, retrying with improved code (${retryCount}/${maxRetries})...`);
+          
+          // Use the validator to fix the code and try again
+          const validator = new ManimCodeValidator();
+          const validationResult = await validator.validateAndFix(manimCode);
+          
+          if (validationResult.fixedCode) {
+            console.log('Code was fixed by validator, retrying...');
+            
+            // Update the Manim file with fixed code
+            const fixedClassNameMatch = validationResult.fixedCode.match(/class\s+(\w+)\s*\(/);
+            const fixedClassName = fixedClassNameMatch ? fixedClassNameMatch[1] : className;
+            
+            const fixedFullCode = `from manim import *
+import numpy as np
+
+${validationResult.fixedCode}
+
+if __name__ == "__main__":
+    scene = ${fixedClassName}()
+    scene.render()
+`;
+            
+            manimFile.fullCode = fixedFullCode;
+            fs.writeFileSync(manimFile.filePath, fixedFullCode);
+          }
+        }
+      }
       
       // Get audio file path
       const audioFileName = audioUrl.split('/').pop();

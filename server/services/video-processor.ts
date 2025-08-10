@@ -2,7 +2,12 @@ import fs from "fs";
 import path from "path";
 import { exec } from "child_process";
 import { promisify } from "util";
-import { ManimFile } from "./manim-generator.js";
+// Define the interface locally since we're not importing from manim-generator anymore
+interface ManimFile {
+  fileName: string;
+  filePath: string;
+  fullCode: string;
+}
 
 const execAsync = promisify(exec);
 
