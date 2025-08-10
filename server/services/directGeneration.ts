@@ -1,5 +1,7 @@
 import { generateEducationalSeries } from "./educationalDemo.js";
 import { generateAudioFromScript } from "./openai-tts.js";
+import { generateManimCode, createManimFile } from "./manim-generator.js";
+import { renderManimVideo, combineAudioAndVideo, cleanupTempFiles } from "./video-processor.js";
 import { storage } from "../storage.js";
 import type { VideoGenerationRequest, InsertVideoSeries, InsertEpisode } from "@shared/schema";
 
@@ -77,6 +79,34 @@ async function generateContentAsync(seriesId: number, request: VideoGenerationRe
         episode.episodeNumber
       );
 
+      // Generate Manim code and render video
+      updateProgress(progressStep + 5, `Generating Manim animation for episode ${i + 1}...`);
+      const manimScene = await generateManimCode(
+        script.script,
+        script.title,
+        script.duration
+      );
+      
+      const manimFile = createManimFile(manimScene, seriesId, episode.episodeNumber);
+      
+      updateProgress(progressStep + 10, `Rendering video for episode ${i + 1}...`);
+      const videoPath = await renderManimVideo(manimFile, seriesId, episode.episodeNumber);
+      
+      // Get audio file path
+      const audioFileName = audioUrl.split('/').pop();
+      const audioPath = `server/audio/${audioFileName}`;
+      
+      updateProgress(progressStep + 15, `Combining audio and video for episode ${i + 1}...`);
+      const videoResult = await combineAudioAndVideo(
+        videoPath,
+        audioPath,
+        seriesId,
+        episode.episodeNumber
+      );
+      
+      // Clean up temporary files
+      await cleanupTempFiles(manimFile, videoPath);
+
       const episodeData: InsertEpisode = {
         seriesId,
         episodeNumber: episode.episodeNumber,
@@ -84,7 +114,7 @@ async function generateContentAsync(seriesId: number, request: VideoGenerationRe
         description: script.description,
         script: script.script,
         duration: script.duration,
-        videoUrl: null, // Educational content focuses on scripts and audio
+        videoUrl: videoResult.videoUrl,
         audioUrl: audioUrl,
         transcriptUrl: `/api/transcripts/${seriesId}/episode-${episode.episodeNumber}.txt`
       };

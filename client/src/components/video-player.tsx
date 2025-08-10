@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Play, Download, Share2, ChevronLeft, ChevronRight, Pause, Volume2, Maximize } from "lucide-react";
+import { Play, Download, Share2, ChevronLeft, ChevronRight, Pause, Volume2, VolumeX, Maximize } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import type { Episode } from "@shared/schema";
 
@@ -19,7 +19,12 @@ export default function VideoPlayer({
   onEpisodeWatched 
 }: VideoPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [progress, setProgress] = useState(35);
+  const [progress, setProgress] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [volume, setVolume] = useState(1);
+  const [isMuted, setIsMuted] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
   
   const currentEpisode = episodes[currentEpisodeIndex];
 
@@ -30,8 +35,67 @@ export default function VideoPlayer({
     }
   }, [currentEpisode?.id, currentEpisode?.isWatched, onEpisodeWatched]);
 
-  const handlePlay = () => {
-    setIsPlaying(!isPlaying);
+  const handlePlay = async () => {
+    if (videoRef.current) {
+      try {
+        if (isPlaying) {
+          videoRef.current.pause();
+        } else {
+          // Ensure audio is enabled and volume is up
+          videoRef.current.muted = false;
+          videoRef.current.volume = volume;
+          await videoRef.current.play();
+        }
+        setIsPlaying(!isPlaying);
+      } catch (error) {
+        console.error('Error playing video:', error);
+        // If autoplay fails, try with muted first then unmute
+        if (videoRef.current) {
+          videoRef.current.muted = true;
+          await videoRef.current.play();
+          videoRef.current.muted = false;
+          videoRef.current.volume = volume;
+        }
+      }
+    }
+  };
+
+  const handleTimeUpdate = () => {
+    if (videoRef.current) {
+      const current = videoRef.current.currentTime;
+      const total = videoRef.current.duration;
+      setCurrentTime(current);
+      setDuration(total);
+      setProgress((current / total) * 100);
+    }
+  };
+
+  const handleLoadedMetadata = () => {
+    if (videoRef.current) {
+      setDuration(videoRef.current.duration);
+      // Ensure audio is enabled
+      videoRef.current.muted = false;
+      videoRef.current.volume = volume;
+    }
+  };
+
+  const handleVolumeToggle = () => {
+    if (videoRef.current) {
+      if (isMuted) {
+        videoRef.current.muted = false;
+        videoRef.current.volume = volume;
+        setIsMuted(false);
+      } else {
+        videoRef.current.muted = true;
+        setIsMuted(true);
+      }
+    }
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   const handlePrevious = () => {
@@ -82,22 +146,28 @@ export default function VideoPlayer({
     <div className="lg:col-span-2">
       <Card className="bg-white rounded-2xl shadow-lg overflow-hidden">
         <div className="aspect-video bg-neutral-900 relative">
-          {/* Video placeholder */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <Button
-              onClick={handlePlay}
-              className="bg-white/20 hover:bg-white/30 rounded-full p-6 transition-colors"
-              variant="ghost"
+          {/* Actual Video Player */}
+          {currentEpisode.videoUrl ? (
+            <video
+              ref={videoRef}
+              className="w-full h-full object-cover"
+              onTimeUpdate={handleTimeUpdate}
+              onLoadedMetadata={handleLoadedMetadata}
+              onPlay={() => setIsPlaying(true)}
+              onPause={() => setIsPlaying(false)}
+              controls={false}
+              preload="metadata"
             >
-              {isPlaying ? (
-                <Pause className="text-white" size={32} />
-              ) : (
-                <Play className="text-white ml-1" size={32} />
-              )}
-            </Button>
-          </div>
+              <source src={currentEpisode.videoUrl} type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <p className="text-white">Video not available</p>
+            </div>
+          )}
           
-          {/* Video player controls */}
+          {/* Video player controls overlay */}
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
             <div className="flex items-center space-x-4 text-white">
               <Button
@@ -111,9 +181,16 @@ export default function VideoPlayer({
               <div className="flex-1">
                 <Progress value={progress} className="h-1" />
               </div>
-              <span className="text-sm">2:45 / {currentEpisode.duration}</span>
-              <Button variant="ghost" size="sm" className="text-white hover:text-primary">
-                <Volume2 size={16} />
+              <span className="text-sm">
+                {formatTime(currentTime)} / {formatTime(duration)}
+              </span>
+              <Button 
+                onClick={handleVolumeToggle}
+                variant="ghost" 
+                size="sm" 
+                className="text-white hover:text-primary"
+              >
+                {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
               </Button>
               <Button variant="ghost" size="sm" className="text-white hover:text-primary">
                 <Maximize size={16} />
