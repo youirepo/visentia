@@ -110,6 +110,11 @@ MANIM v0.19.0 SPECIFIC REQUIREMENTS:
 - Ensure total scene duration is 2-3 minutes (120-180 seconds)
 - Each text element should have appropriate display time with fade effects
 
+TIMING PATTERN EXAMPLE:
+- Title sequence: FadeIn(title), Wait(5), FadeOut(title), Wait(1)
+- Content sections: FadeIn(content), Wait(4), FadeOut(content), Wait(1)
+- Repeat pattern to reach 2-3 minutes total duration
+
 ${previousFeedback ? `PREVIOUS FEEDBACK TO ADDRESS:\n${previousFeedback}\n\n` : ''}
 Start your response with 'import' and end with the last line of Python code. Nothing else.`;
 
@@ -125,11 +130,18 @@ The scene should:
 - Include fade in/out effects for text elements
 - End with a clean conclusion
 
-CRITICAL TIMING REQUIREMENTS:
-- Each text element should appear for 3-5 seconds
-- Use FadeIn() and FadeOut() for smooth transitions
-- Total scene duration should be 2-3 minutes (120-180 seconds)
-- Add pauses between content sections
+CRITICAL TIMING REQUIREMENTS - YOU MUST FOLLOW THESE EXACTLY:
+- Each text element must appear for 3-5 seconds using Wait()
+- Use FadeIn() and FadeOut() for ALL text elements
+- Total scene duration MUST be 2-3 minutes (120-180 seconds)
+- Add Wait(3) between each content section
+- Use this exact pattern: FadeIn(text), Wait(4), FadeOut(text), Wait(1)
+
+EXAMPLE STRUCTURE:
+1. Title appears with FadeIn, stays for 5 seconds, fades out
+2. Content section 1: FadeIn, Wait(4), FadeOut, Wait(1)
+3. Content section 2: FadeIn, Wait(4), FadeOut, Wait(1)
+4. Continue pattern to reach 2-3 minutes total
 
 IMPORTANT: Use Manim Community v0.19.0 syntax:
 - Text objects: Text("Hello", font_size=0.8, color=WHITE)
