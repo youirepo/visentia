@@ -67,8 +67,8 @@ export class ManimCodeValidator {
       errors.push('MathTex found but may have invalid LaTeX syntax');
     }
     
-    if (code.includes('Text(') && code.includes('font_size=') && !code.includes('font_size=')) {
-      errors.push('Text objects should use font_size parameter');
+    if (code.includes('Text(') && code.includes('size=') && !code.includes('font_size=')) {
+      errors.push('Text objects should use font_size parameter instead of size parameter for Manim v0.19.0');
     }
     
     const isValid = errors.length === 0;
@@ -93,6 +93,13 @@ Your task is to:
 3. Identify undefined variables or methods
 4. Check for proper class inheritance
 5. Validate method definitions
+6. Ensure compatibility with Manim Community v0.19.0
+
+MANIM v0.19.0 COMPATIBILITY CHECKS:
+- Text objects must use 'font_size' parameter, not 'size'
+- Shapes should use 'stroke_width' parameter
+- Use 'animate' for animations (e.g., 'text.animate.shift(UP)')
+- Proper positioning methods: 'shift()', 'move_to()', 'next_to()'
 
 Respond with a JSON object containing:
 {

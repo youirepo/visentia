@@ -91,7 +91,7 @@ CRITICAL: You must output ONLY valid Python code. Do NOT include:
 - Any text that is not Python code
 
 REQUIREMENTS:
-1. Use ONLY valid Manim syntax and classes
+1. Use ONLY valid Manim Community v0.19.0 syntax and classes
 2. Import statements must be correct and complete
 3. Scene class must inherit from Scene
 4. All methods must be properly defined
@@ -99,6 +99,13 @@ REQUIREMENTS:
 6. Use proper Python syntax throughout
 7. Ensure all text rendering uses proper Manim text classes
 8. Animation timing should be reasonable (not too fast or slow)
+
+MANIM v0.19.0 SPECIFIC REQUIREMENTS:
+- Use 'font_size' parameter instead of 'size' for Text objects
+- Use 'stroke_width' parameter instead of 'stroke_width' for shapes
+- Use 'fill_opacity' and 'stroke_opacity' for transparency
+- Use 'shift()', 'move_to()', 'next_to()' for positioning
+- Use 'animate' for animations (e.g., 'text.animate.shift(UP)')
 
 ${previousFeedback ? `PREVIOUS FEEDBACK TO ADDRESS:\n${previousFeedback}\n\n` : ''}
 Start your response with 'import' and end with the last line of Python code. Nothing else.`;
@@ -113,6 +120,11 @@ The scene should:
 - Present the content in an engaging way
 - Use smooth animations and transitions
 - End with a clean conclusion
+
+IMPORTANT: Use Manim Community v0.19.0 syntax:
+- Text objects: Text("Hello", font_size=0.8, color=WHITE)
+- Shapes: Circle(radius=1, stroke_width=2, fill_opacity=0.5)
+- Animations: text.animate.shift(UP), circle.animate.scale(2)
 
 Generate ONLY the Python code:`;
 
