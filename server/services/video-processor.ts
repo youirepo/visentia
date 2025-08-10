@@ -71,6 +71,13 @@ export async function renderManimVideo(
     fs.copyFileSync(videoFile, finalVideoPath);
     
     console.log(`Manim video rendered successfully: ${finalVideoPath}`);
+    console.log(`Video duration: ${videoFile} -> ${finalVideoPath}`);
+    
+    // Verify the video was copied successfully
+    if (!fs.existsSync(finalVideoPath)) {
+      throw new Error(`Failed to copy video to final location: ${finalVideoPath}`);
+    }
+    
     return finalVideoPath;
     
   } catch (error) {
@@ -128,6 +135,15 @@ export async function combineAudioAndVideo(
     const duration = parseFloat(durationOutput.trim());
     
     console.log(`Video and audio combined successfully: ${outputPath} (duration: ${duration}s)`);
+    console.log(`Final video URL: /api/video/${outputFileName}`);
+    
+    // Verify the final video file exists and has content
+    const stats = fs.statSync(outputPath);
+    console.log(`Final video file size: ${stats.size} bytes`);
+    
+    if (stats.size < 1000) {
+      throw new Error(`Final video file is too small (${stats.size} bytes), indicating processing failure`);
+    }
     
     return {
       videoPath: outputPath,

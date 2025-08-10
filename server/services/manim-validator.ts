@@ -71,6 +71,25 @@ export class ManimCodeValidator {
       errors.push('Text objects should use font_size parameter instead of size parameter for Manim v0.19.0');
     }
     
+    // Check for proper timing and animations
+    if (!code.includes('Wait(') && !code.includes('FadeIn(') && !code.includes('FadeOut(')) {
+      errors.push('Scene should include proper timing with Wait(), FadeIn(), and FadeOut() for smooth transitions');
+    }
+    
+    // Check for reasonable scene duration
+    if (code.includes('Wait(')) {
+      const waitMatches = code.match(/Wait\((\d+(?:\.\d+)?)\)/g);
+      if (waitMatches) {
+        const totalWait = waitMatches.reduce((sum, match) => {
+          const time = parseFloat(match.match(/Wait\((\d+(?:\.\d+)?)\)/)?.[1] || '0');
+          return sum + time;
+        }, 0);
+        if (totalWait < 30) {
+          errors.push(`Total wait time (${totalWait}s) is too short for a 2-3 minute episode`);
+        }
+      }
+    }
+    
     const isValid = errors.length === 0;
     const feedback = isValid 
       ? 'Code structure appears valid'
@@ -100,6 +119,9 @@ MANIM v0.19.0 COMPATIBILITY CHECKS:
 - Shapes should use 'stroke_width' parameter
 - Use 'animate' for animations (e.g., 'text.animate.shift(UP)')
 - Proper positioning methods: 'shift()', 'move_to()', 'next_to()'
+- Include proper timing: Wait(), FadeIn(), FadeOut()
+- Ensure reasonable scene duration (not too short)
+- Check for proper text transitions and animations
 
 Respond with a JSON object containing:
 {

@@ -106,6 +106,9 @@ MANIM v0.19.0 SPECIFIC REQUIREMENTS:
 - Use 'fill_opacity' and 'stroke_opacity' for transparency
 - Use 'shift()', 'move_to()', 'next_to()' for positioning
 - Use 'animate' for animations (e.g., 'text.animate.shift(UP)')
+- Use proper timing: Wait(seconds), FadeIn(), FadeOut()
+- Ensure total scene duration is 2-3 minutes (120-180 seconds)
+- Each text element should have appropriate display time with fade effects
 
 ${previousFeedback ? `PREVIOUS FEEDBACK TO ADDRESS:\n${previousFeedback}\n\n` : ''}
 Start your response with 'import' and end with the last line of Python code. Nothing else.`;
@@ -117,14 +120,22 @@ Content: ${content}
 
 The scene should:
 - Start with a title showing the series and episode
-- Present the content in an engaging way
+- Present the content in an engaging way with proper timing
 - Use smooth animations and transitions
+- Include fade in/out effects for text elements
 - End with a clean conclusion
+
+CRITICAL TIMING REQUIREMENTS:
+- Each text element should appear for 3-5 seconds
+- Use FadeIn() and FadeOut() for smooth transitions
+- Total scene duration should be 2-3 minutes (120-180 seconds)
+- Add pauses between content sections
 
 IMPORTANT: Use Manim Community v0.19.0 syntax:
 - Text objects: Text("Hello", font_size=0.8, color=WHITE)
 - Shapes: Circle(radius=1, stroke_width=2, fill_opacity=0.5)
 - Animations: text.animate.shift(UP), circle.animate.scale(2)
+- Timing: Wait(3), FadeIn(text), FadeOut(text)
 
 Generate ONLY the Python code:`;
 
