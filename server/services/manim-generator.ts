@@ -84,7 +84,13 @@ export class ManimGenerator {
   ): Promise<string> {
     const systemPrompt = `You are an expert Manim developer. Generate clean, valid Manim code for educational videos.
 
-IMPORTANT REQUIREMENTS:
+CRITICAL: You must output ONLY valid Python code. Do NOT include:
+- Explanations
+- Comments about what the code does
+- Markdown formatting
+- Any text that is not Python code
+
+REQUIREMENTS:
 1. Use ONLY valid Manim syntax and classes
 2. Import statements must be correct and complete
 3. Scene class must inherit from Scene
@@ -95,7 +101,7 @@ IMPORTANT REQUIREMENTS:
 8. Animation timing should be reasonable (not too fast or slow)
 
 ${previousFeedback ? `PREVIOUS FEEDBACK TO ADDRESS:\n${previousFeedback}\n\n` : ''}
-Generate ONLY the Python code, no explanations or markdown formatting.`;
+Start your response with 'import' and end with the last line of Python code. Nothing else.`;
 
     const userPrompt = `Create a Manim scene for:
 Series: ${seriesTitle}
@@ -136,18 +142,34 @@ Generate ONLY the Python code:`;
     // Remove any leading/trailing whitespace
     code = code.trim();
     
-    // If the response starts with "import" or "from", it's likely pure code
-    if (code.startsWith('import') || code.startsWith('from') || code.startsWith('class')) {
-      return code;
+    // Find the first line that starts with 'import' or 'from' or 'class'
+    const lines = code.split('\n');
+    let startIndex = -1;
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (line.startsWith('import') || line.startsWith('from') || line.startsWith('class')) {
+        startIndex = i;
+        break;
+      }
     }
     
-    // Try to find code blocks in the response
-    const codeBlockMatch = response.match(/```(?:python)?\n?([\s\S]*?)\n?```/);
-    if (codeBlockMatch) {
-      return codeBlockMatch[1].trim();
+    if (startIndex === -1) {
+      throw new Error('No valid Python code found in response');
     }
     
-    // If no clear code block, return the cleaned response
-    return code;
+    // Find the last line that contains valid Python code (not explanatory text)
+    let endIndex = lines.length - 1;
+    for (let i = lines.length - 1; i >= startIndex; i--) {
+      const line = lines[i].trim();
+      // Skip empty lines and lines that look like explanatory text
+      if (line && !line.startsWith('#') && !line.match(/^[A-Z][a-z]/)) {
+        endIndex = i;
+        break;
+      }
+    }
+    
+    // Extract only the valid Python code
+    const validLines = lines.slice(startIndex, endIndex + 1);
+    return validLines.join('\n');
   }
 } 
