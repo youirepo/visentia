@@ -35,34 +35,25 @@ export default function VideoPlayer({
     }
   }, [currentEpisode?.id, currentEpisode?.isWatched, onEpisodeWatched]);
 
+  // Reset state when episode changes
+  useEffect(() => {
+    setIsPlaying(false);
+    setProgress(0);
+    setCurrentTime(0);
+    setDuration(0);
+  }, [currentEpisode?.id]);
+
   const handlePlay = async () => {
     if (videoRef.current) {
       try {
         if (isPlaying) {
           videoRef.current.pause();
+          setIsPlaying(false);
         } else {
-          // Ensure audio is enabled and volume is up
-          videoRef.current.muted = false;
-          videoRef.current.volume = volume;
-          
-          // Try to play with audio first
-          try {
-            await videoRef.current.play();
-          } catch (audioError) {
-            console.log('Audio playback blocked, trying muted first:', audioError);
-            // If audio playback fails, try muted first then unmute
-            videoRef.current.muted = true;
-            await videoRef.current.play();
-            // Wait a bit then unmute
-            setTimeout(() => {
-              if (videoRef.current) {
-                videoRef.current.muted = false;
-                videoRef.current.volume = volume;
-              }
-            }, 100);
-          }
+          // Simple play with current audio settings
+          await videoRef.current.play();
+          setIsPlaying(true);
         }
-        setIsPlaying(!isPlaying);
       } catch (error) {
         console.error('Error playing video:', error);
       }
@@ -82,11 +73,8 @@ export default function VideoPlayer({
   const handleLoadedMetadata = () => {
     if (videoRef.current) {
       setDuration(videoRef.current.duration);
-      // Ensure audio is enabled
-      videoRef.current.muted = false;
-      videoRef.current.volume = volume;
       
-      // Debug audio state
+      // Debug info
       console.log('Video loaded metadata:', {
         duration: videoRef.current.duration,
         muted: videoRef.current.muted,
@@ -101,13 +89,16 @@ export default function VideoPlayer({
     if (videoRef.current) {
       if (isMuted) {
         videoRef.current.muted = false;
-        videoRef.current.volume = volume;
         setIsMuted(false);
       } else {
         videoRef.current.muted = true;
         setIsMuted(true);
       }
     }
+  };
+
+  const handleVideoClick = () => {
+    handlePlay();
   };
 
   const formatTime = (seconds: number) => {
@@ -173,11 +164,12 @@ export default function VideoPlayer({
               onLoadedMetadata={handleLoadedMetadata}
               onPlay={() => setIsPlaying(true)}
               onPause={() => setIsPlaying(false)}
-              onClick={handlePlay}
+              onClick={handleVideoClick}
               controls={false}
               preload="metadata"
               muted={false}
               autoPlay={false}
+              playsInline
             >
               <source src={currentEpisode.videoUrl} type="video/mp4" />
               Your browser does not support the video tag.
@@ -185,6 +177,13 @@ export default function VideoPlayer({
           ) : (
             <div className="absolute inset-0 flex items-center justify-center">
               <p className="text-white">Video not available</p>
+            </div>
+          )}
+          
+          {/* Audio status indicator */}
+          {!isMuted && (
+            <div className="absolute top-4 right-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm">
+              🔊 Audio enabled
             </div>
           )}
           
@@ -210,8 +209,13 @@ export default function VideoPlayer({
                 variant="ghost" 
                 size="sm" 
                 className="text-white hover:text-primary"
+                title={isMuted ? "Click to enable audio" : "Mute"}
               >
-                {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+                {isMuted ? (
+                  <VolumeX size={16} className="opacity-50" />
+                ) : (
+                  <Volume2 size={16} />
+                )}
               </Button>
               <Button variant="ghost" size="sm" className="text-white hover:text-primary">
                 <Maximize size={16} />

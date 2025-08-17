@@ -90,15 +90,45 @@ CRITICAL: You must output ONLY valid Python code. Do NOT include:
 - Markdown formatting
 - Any text that is not Python code
 
-REQUIREMENTS:
-1. Use ONLY valid Manim Community v0.19.0 syntax and classes
-2. Import statements must be correct and complete
-3. Scene class must inherit from Scene
-4. All methods must be properly defined
-5. No undefined variables or functions
-6. Use proper Python syntax throughout
-7. Ensure all text rendering uses proper Manim text classes
-8. Animation timing should be reasonable (not too fast or slow)
+Start your response with 'import' and end with the last line of Python code. Nothing else.
+
+MANIM v0.19.0 SPECIFIC REQUIREMENTS:
+- Use 'font_size' parameter instead of 'size' for Text objects
+- ALWAYS use font_size=48 or larger for visibility
+- Use 'stroke_width' parameter instead of 'stroke_width'
+- Use 'fill_opacity' and 'stroke_opacity' parameters
+- Use 'shift()', 'move_to()', 'next_to()' for positioning
+- Use 'animate' for animations
+- Use proper timing: Wait(seconds), FadeIn(), FadeOut()
+
+CRITICAL TIMING REQUIREMENTS - YOU MUST FOLLOW THESE EXACTLY:
+- Each text element must appear for 3-5 seconds using Wait()
+- Use FadeIn() and FadeOut() for ALL text elements
+- Total scene duration MUST be 2-3 minutes (120-180 seconds)
+- Add Wait(3) between each content section
+- Use this exact pattern: FadeIn(text), Wait(4), FadeOut(text), Wait(1)
+
+EXAMPLE STRUCTURE:
+- Introduction text: FadeIn, Wait(4), FadeOut, Wait(1)
+- Main concept 1: FadeIn, Wait(4), FadeOut, Wait(1)
+- Main concept 2: FadeIn, Wait(4), FadeOut, Wait(1)
+- Main concept 3: FadeIn, Wait(4), FadeOut, Wait(1)
+- Conclusion: FadeIn, Wait(4), FadeOut, Wait(1)
+
+TEXT SIZE EXAMPLES (use these exact sizes):
+- Title: Text("Title", font_size=72, color=WHITE)
+- Headings: Text("Heading", font_size=60, color=WHITE)
+- Main text: Text("Content", font_size=48, color=WHITE)
+- NEVER use font_size less than 48!
+
+IMPORTANT: Use Manim Community v0.19.0 syntax:
+- Text("Hello", font_size=48)
+- Circle(stroke_width=2)
+- Square(fill_opacity=0.5)
+- text.animate.shift(UP)
+
+CRITICAL: Text must be clearly visible with font_size=48 or larger!
+NEVER use font_size less than 48 - this makes text invisible!
 
 MANIM v0.19.0 SPECIFIC REQUIREMENTS:
 - Use 'font_size' parameter instead of 'size' for Text objects
@@ -118,17 +148,20 @@ TIMING PATTERN EXAMPLE:
 ${previousFeedback ? `PREVIOUS FEEDBACK TO ADDRESS:\n${previousFeedback}\n\n` : ''}
 Start your response with 'import' and end with the last line of Python code. Nothing else.`;
 
-    const userPrompt = `Create a Manim scene for:
+    const userPrompt = `Create a Manim scene for a COMPLETE, STANDALONE educational video:
 Series: ${seriesTitle}
 Episode: ${episodeTitle}
 Content: ${content}
 
+CRITICAL: This must be a COMPLETE lesson that teaches the entire topic, NOT an introduction to a series. The content should cover everything from basic concepts to advanced understanding in one video.
+
 The scene should:
 - Start with a title showing the series and episode
-- Present the content in an engaging way with proper timing
+- Present the COMPLETE content comprehensively with proper timing
 - Use smooth animations and transitions
 - Include fade in/out effects for text elements
-- End with a clean conclusion
+- Cover ALL aspects of the topic thoroughly
+- End with a complete conclusion that summarizes everything learned
 
 CRITICAL TIMING REQUIREMENTS - YOU MUST FOLLOW THESE EXACTLY:
 - Each text element must appear for 3-5 seconds using Wait()
@@ -144,10 +177,13 @@ EXAMPLE STRUCTURE:
 4. Continue pattern to reach 2-3 minutes total
 
 IMPORTANT: Use Manim Community v0.19.0 syntax:
-- Text objects: Text("Hello", font_size=0.8, color=WHITE)
+- Text objects: Text("Hello", font_size=48, color=WHITE)
 - Shapes: Circle(radius=1, stroke_width=2, fill_opacity=0.5)
 - Animations: text.animate.shift(UP), circle.animate.scale(2)
 - Timing: Wait(3), FadeIn(text), FadeOut(text)
+
+CRITICAL: Text must be clearly visible with font_size=48 or larger!
+NEVER use font_size less than 48 - this makes text invisible!
 
 Generate ONLY the Python code:`;
 

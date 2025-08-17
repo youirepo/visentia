@@ -71,6 +71,20 @@ export class ManimCodeValidator {
       errors.push('Text objects should use font_size parameter instead of size parameter for Manim v0.19.0');
     }
     
+    // Check for font sizes that are too small
+    if (code.includes('Text(') && code.includes('font_size=')) {
+      const fontSizeMatches = code.match(/font_size=(\d+(?:\.\d+)?)/g);
+      if (fontSizeMatches) {
+        const hasSmallFont = fontSizeMatches.some(match => {
+          const size = parseFloat(match.match(/font_size=(\d+(?:\.\d+)?)/)?.[1] || '0');
+          return size < 48;
+        });
+        if (hasSmallFont) {
+          errors.push('Text font_size should be 48 or larger for visibility. Found font sizes that are too small.');
+        }
+      }
+    }
+    
     // Check for proper timing and animations
     if (!code.includes('Wait(') && !code.includes('FadeIn(') && !code.includes('FadeOut(')) {
       errors.push('Scene should include proper timing with Wait(), FadeIn(), and FadeOut() for smooth transitions');
@@ -116,6 +130,7 @@ Your task is to:
 
 MANIM v0.19.0 COMPATIBILITY CHECKS:
 - Text objects must use 'font_size' parameter, not 'size'
+- Text font_size must be 48 or larger for visibility
 - Shapes should use 'stroke_width' parameter
 - Use 'animate' for animations (e.g., 'text.animate.shift(UP)')
 - Proper positioning methods: 'shift()', 'move_to()', 'next_to()'
@@ -199,8 +214,10 @@ CRITICAL REQUIREMENTS:
 5. Fix any undefined variables or functions
 6. Maintain the original intent and structure
 7. Use only valid Manim classes and methods
-8. Return ONLY the fixed Python code - NO explanations, NO comments about what you fixed, NO markdown formatting
-9. The response must be valid Python code that can be executed directly
+8. Ensure all Text objects use font_size=48 or larger for visibility
+9. Use Manim v0.19.0 compatible syntax (font_size not size)
+10. Return ONLY the fixed Python code - NO explanations, NO comments about what you fixed, NO markdown formatting
+11. The response must be valid Python code that can be executed directly
 
 IMPORTANT: Your response must contain ONLY the corrected Python code. Do not add any explanatory text, comments about your changes, or any other non-code content.`;
 
