@@ -148,7 +148,8 @@ TIMING PATTERN EXAMPLE:
 ${previousFeedback ? `PREVIOUS FEEDBACK TO ADDRESS:\n${previousFeedback}\n\n` : ''}
 Start your response with 'import' and end with the last line of Python code. Nothing else.`;
 
-    const userPrompt = `Create a Manim scene for a COMPLETE, STANDALONE educational video:
+    const userPrompt = `Create a Manim scene for a COMPLETE, STANDALONE educational video.
+Avoid meta-intros like "Welcome to our complete guide". Do not echo the input topic verbatim in the on-screen text. Start directly with core explanations and progressively build concepts.
 Series: ${seriesTitle}
 Episode: ${episodeTitle}
 Content: ${content}
@@ -171,7 +172,7 @@ CRITICAL TIMING REQUIREMENTS - YOU MUST FOLLOW THESE EXACTLY:
 - Use this exact pattern: FadeIn(text), Wait(4), FadeOut(text), Wait(1)
 
 EXAMPLE STRUCTURE:
-1. Title appears with FadeIn, stays for 5 seconds, fades out
+1. Title appears with FadeIn, stays for 5 seconds, fades out (no "Welcome" phrasing)
 2. Content section 1: FadeIn, Wait(4), FadeOut, Wait(1)
 3. Content section 2: FadeIn, Wait(4), FadeOut, Wait(1)
 4. Continue pattern to reach 2-3 minutes total

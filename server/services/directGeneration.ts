@@ -5,6 +5,7 @@ import { ManimCodeValidator } from "./manim-validator.js";
 import { generateUniqueTitle } from "./title-generator.js";
 import { renderManimVideo, combineAudioAndVideo, cleanupTempFiles } from "./video-processor.js";
 import { storage } from "../storage.js";
+import { optimizeScript } from "./script-optimizer.js";
 import fs from "fs";
 import type { VideoGenerationRequest, InsertVideoSeries, InsertEpisode } from "@shared/schema";
 
@@ -59,7 +60,7 @@ async function generateContentAsync(seriesId: number, request: VideoGenerationRe
     );
     
     const outline = demoContent.outline;
-    const scripts = demoContent.scripts;
+    let scripts = demoContent.scripts;
 
     // Generate a unique, intelligent series title based on the prompt/context
     const uniqueSeriesTitle = await generateUniqueTitle({
@@ -74,7 +75,15 @@ async function generateContentAsync(seriesId: number, request: VideoGenerationRe
     await storage.updateVideoSeriesTitle(seriesId, uniqueSeriesTitle);
     updateProgress(30, "Educational content generated, creating episodes...");
 
-    // Generate episodes using demo content
+    // Optimize each script to avoid formulaic intros/prompt echoing
+    scripts = await Promise.all(
+      scripts.map(async (s) => ({
+        ...s,
+        script: await optimizeScript(request.topic, s.script),
+      }))
+    );
+
+    // Generate episodes using optimized content
     const totalEpisodes = outline.episodes.length;
     for (let i = 0; i < totalEpisodes; i++) {
       const episode = outline.episodes[i];
