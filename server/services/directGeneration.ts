@@ -2,6 +2,7 @@ import { generateEducationalSeries } from "./educationalDemo.js";
 import { generateAudioFromScript } from "./openai-tts.js";
 import { ManimGenerator } from "./manim-generator.js";
 import { ManimCodeValidator } from "./manim-validator.js";
+import { generateUniqueTitle } from "./title-generator.js";
 import { renderManimVideo, combineAudioAndVideo, cleanupTempFiles } from "./video-processor.js";
 import { storage } from "../storage.js";
 import fs from "fs";
@@ -59,9 +60,18 @@ async function generateContentAsync(seriesId: number, request: VideoGenerationRe
     
     const outline = demoContent.outline;
     const scripts = demoContent.scripts;
+
+    // Generate a unique, intelligent series title based on the prompt/context
+    const uniqueSeriesTitle = await generateUniqueTitle({
+      topic: request.topic,
+      subject: request.subject,
+      style: request.style,
+      difficultyLevel: request.difficultyLevel,
+      scriptExcerpt: scripts[0]?.script
+    });
     
     // Update series title
-    await storage.updateVideoSeriesTitle(seriesId, outline.title);
+    await storage.updateVideoSeriesTitle(seriesId, uniqueSeriesTitle);
     updateProgress(30, "Educational content generated, creating episodes...");
 
     // Generate episodes using demo content
@@ -69,6 +79,14 @@ async function generateContentAsync(seriesId: number, request: VideoGenerationRe
     for (let i = 0; i < totalEpisodes; i++) {
       const episode = outline.episodes[i];
       const script = scripts[i];
+      // Generate a unique episode title for each script
+      const uniqueEpisodeTitle = await generateUniqueTitle({
+        topic: request.topic,
+        subject: request.subject,
+        style: request.style,
+        difficultyLevel: request.difficultyLevel,
+        scriptExcerpt: script.script
+      });
       const progressStep = 30 + ((i + 1) / totalEpisodes) * 60;
       
       updateProgress(progressStep, `Creating episode ${i + 1}: ${episode.title}...`);
@@ -85,11 +103,7 @@ async function generateContentAsync(seriesId: number, request: VideoGenerationRe
       updateProgress(progressStep + 5, `Generating Manim animation for episode ${i + 1}...`);
       
       const manimGenerator = new ManimGenerator();
-      const manimCode = await manimGenerator.generateManimCode(
-        outline.title,
-        script.title,
-        script.script
-      );
+      const manimCode = await manimGenerator.generateManimCode(uniqueSeriesTitle, uniqueEpisodeTitle, script.script);
       
       // Create the Manim file
       const fileName = `series-${seriesId}-episode-${episode.episodeNumber}-${Date.now()}.py`;
@@ -97,7 +111,7 @@ async function generateContentAsync(seriesId: number, request: VideoGenerationRe
       
       // Extract the actual class name from the generated code
       const classNameMatch = manimCode.match(/class\s+(\w+)\s*\(/);
-      const className = classNameMatch ? classNameMatch[1] : script.title.replace(/[^a-zA-Z0-9]/g, '');
+      const className = classNameMatch ? classNameMatch[1] : uniqueEpisodeTitle.replace(/[^a-zA-Z0-9]/g, '');
       
       const fullCode = `from manim import *
 import numpy as np
@@ -175,7 +189,7 @@ if __name__ == "__main__":
       const episodeData: InsertEpisode = {
         seriesId,
         episodeNumber: episode.episodeNumber,
-        title: script.title,
+        title: uniqueEpisodeTitle,
         description: script.description,
         script: script.script,
         duration: script.duration,
