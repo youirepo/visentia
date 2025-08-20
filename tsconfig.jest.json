@@ -1,0 +1,22 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "server/**/*",
+    "client/src/**/*",
+    "shared/**/*",
+    "server/__tests__/**/*",
+    "test-setup.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "build",
+    "dist"
+  ],
+  "compilerOptions": {
+    "types": ["node", "jest"],
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "jsx": "react-jsx",
+    "noEmit": true
+  }
+}

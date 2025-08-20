@@ -1,4 +1,4 @@
-import { jest } from '@jest/globals';
+import { jest, beforeAll, afterAll } from '@jest/globals';
 
 // Global test setup
 beforeAll(() => {
@@ -25,9 +25,7 @@ global.console = {
 
 // Mock file system operations for tests
 jest.mock('fs', () => ({
-  ...jest.requireActual('fs'),
   promises: {
-    ...jest.requireActual('fs').promises,
     writeFile: jest.fn(),
     readFile: jest.fn(),
     unlink: jest.fn(),
@@ -40,7 +38,6 @@ jest.mock('fs', () => ({
 
 // Mock path operations
 jest.mock('path', () => ({
-  ...jest.requireActual('path'),
   join: jest.fn((...args) => args.join('/')),
 }));
 

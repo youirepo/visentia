@@ -209,7 +209,7 @@ This completes our comprehensive guide to the chemistry of life! You now underst
     episodes: [
       {
         episodeNumber: 1,
-        title: `Everything You Need to Know About ${topic}`,
+        title: `Complete Guide to ${topic}`,
         description: `A comprehensive, standalone lesson covering all aspects of ${topic} from basic concepts to advanced understanding`,
         keyTopics: ["fundamental concepts", "core principles", "practical applications", "advanced techniques", "real-world examples"],
         estimatedDuration: "15-20 minutes"
@@ -219,7 +219,7 @@ This completes our comprehensive guide to the chemistry of life! You now underst
 
   const scripts: EpisodeScript[] = [
     {
-      title: `Everything You Need to Know About ${topic}`,
+      title: `Complete Guide to ${topic}`,
       description: `A comprehensive, standalone lesson covering all aspects of ${topic} from basic concepts to advanced understanding`,
       script: `Welcome to our complete guide to ${topic}! This comprehensive lesson will teach you everything you need to know about this fascinating subject in one video.
 
@@ -243,7 +243,7 @@ This knowledge will serve you well in many areas of life and work. Understanding
 
 Remember, learning is a journey, and this comprehensive guide is your roadmap to mastering ${topic}. Take your time with each concept, and don't hesitate to review sections if you need clarification.
 
-Thank you for joining us on this educational journey. Let's dive in and explore everything ${topic} has to offer!`,
+This concludes our comprehensive guide to ${topic}. We've covered fundamentals, core principles, practical applications, and advanced techniques. Thank you for joining us!`,
       duration: "15-20 minutes"
     }
   ];
