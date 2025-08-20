@@ -250,32 +250,7 @@ export default function VideoPlayer({
         </CardContent>
       </Card>
 
-      {/* Episode Navigation - Only show for multiple episodes */}
-      {episodes.length > 1 && (
-        <div className="flex items-center justify-between mt-6">
-          <Button
-            onClick={handlePrevious}
-            disabled={currentEpisodeIndex === 0}
-            variant="ghost"
-            className="flex items-center text-neutral-600 hover:text-primary disabled:opacity-50"
-          >
-            <ChevronLeft className="mr-2" size={16} />
-            Previous Episode
-          </Button>
-          <div className="text-sm text-neutral-500">
-            Episode {currentEpisodeIndex + 1} of {episodes.length}
-          </div>
-          <Button
-            onClick={handleNext}
-            disabled={currentEpisodeIndex === episodes.length - 1}
-            variant="ghost"
-            className="flex items-center text-neutral-600 hover:text-primary disabled:opacity-50"
-          >
-            Next Episode
-            <ChevronRight className="ml-2" size={16} />
-          </Button>
-        </div>
-      )}
+      {/* Single-video MVP: no episode navigation */}
     </div>
   );
 }

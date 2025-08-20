@@ -6,8 +6,6 @@ import Footer from "@/components/footer";
 import VideoGenerationForm from "@/components/video-generation-form";
 import ProgressIndicator from "@/components/progress-indicator";
 import VideoPlayer from "@/components/video-player";
-import EpisodeSidebar from "@/components/episode-sidebar";
-import RecentSeries from "@/components/recent-series";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import type { VideoSeries, Episode } from "@shared/schema";
@@ -113,27 +111,19 @@ export default function Home() {
           />
         )}
 
-        {/* Generated Video Series Display */}
+        {/* Generated Video Display */}
         {showVideoPlayer && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+          <div className="grid grid-cols-1 gap-8 mb-12">
             <VideoPlayer
               episodes={episodes}
               currentEpisodeIndex={currentEpisodeIndex}
               onEpisodeChange={handleEpisodeChange}
               onEpisodeWatched={handleEpisodeWatched}
             />
-            
-            <EpisodeSidebar
-              series={selectedSeries}
-              episodes={episodes}
-              currentEpisodeIndex={currentEpisodeIndex}
-              onEpisodeSelect={handleEpisodeSelect}
-            />
           </div>
         )}
 
-        {/* Recent Series */}
-        <RecentSeries />
+        {/* Single-video MVP: no series/episodes list */}
 
       </main>
 
