@@ -162,6 +162,11 @@ ${code}
 Focus on syntax correctness, import validity, and Manim-specific requirements.`;
 
     try {
+      // Print the AI validation prompts (system + user) for debugging when validating syntax
+      try {
+        console.log('[ManimValidator] Syntax validation system prompt will be used.');
+        console.log('[ManimValidator] Code being validated (truncated to 500 chars):', code.slice(0, 500));
+      } catch {}
       const response = await openai.chat.completions.create({
         model: "gpt-4",
         messages: [

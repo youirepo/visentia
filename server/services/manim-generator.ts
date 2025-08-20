@@ -187,6 +187,12 @@ NEVER use font_size less than 48 - this makes text invisible!
 
 Generate ONLY the Python code:`;
 
+    // Log prompts before calling the LLM for full transparency/debugging
+    try {
+      console.log('[ManimGenerator] LLM systemPrompt:\n', systemPrompt);
+      console.log('[ManimGenerator] LLM userPrompt:\n', userPrompt);
+    } catch {}
+
     const response = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [
