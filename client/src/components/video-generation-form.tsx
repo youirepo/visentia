@@ -147,21 +147,7 @@ export default function VideoGenerationForm({ onGenerationStart }: VideoGenerati
             </div>
           </div>
 
-          {/* Style and Duration: fixed for MVP */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-1">
-              <Label className="block text-lg font-semibold text-neutral-800">Style</Label>
-              <div className="px-4 py-3 border border-neutral-200 rounded-lg bg-neutral-50 text-neutral-700">
-                Visual & Demonstrative (fixed)
-              </div>
-            </div>
-            <div className="space-y-1">
-              <Label className="block text-lg font-semibold text-neutral-800">Video Duration</Label>
-              <div className="px-4 py-3 border border-neutral-200 rounded-lg bg-neutral-50 text-neutral-700">
-                2-3 minutes (fixed)
-              </div>
-            </div>
-          </div>
+          {/* Style and Duration removed for MVP (fixed backend defaults) */}
 
           {/* Submit Section */}
           <div className="flex justify-center pt-4">
