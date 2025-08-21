@@ -12,7 +12,8 @@ export class ManimGenerator {
     seriesTitle: string,
     episodeTitle: string,
     content: string,
-    maxRetries: number = 3
+    maxRetries: number = 3,
+    targetDurationSec?: number
   ): Promise<string> {
     console.log(`Generating Manim code for: ${seriesTitle} - ${episodeTitle}`);
     
@@ -80,7 +81,8 @@ export class ManimGenerator {
     seriesTitle: string,
     episodeTitle: string,
     content: string,
-    previousFeedback?: string
+    previousFeedback?: string,
+    targetDurationSec?: number
   ): Promise<string> {
     const systemPrompt = `You are an expert Manim developer. Generate clean, valid Manim code for educational videos.
 
@@ -105,6 +107,7 @@ CRITICAL TIMING REQUIREMENTS - YOU MUST FOLLOW THESE EXACTLY:
 - Each text element must appear for 3-5 seconds using Wait()
 - Use FadeIn() and FadeOut() for ALL text elements
 - Total scene duration MUST be 2-3 minutes (120-180 seconds)
+- If a target duration is provided, aim for ~${'${'}TARGET_SECONDS{'}'} seconds total Wait() time
 - Add Wait(3) between each content section
 - Use this exact pattern: FadeIn(text), Wait(4), FadeOut(text), Wait(1)
 
@@ -126,6 +129,14 @@ IMPORTANT: Use Manim Community v0.19.0 syntax:
 - Circle(stroke_width=2)
 - Square(fill_opacity=0.5)
 - text.animate.shift(UP)
+
+VISUAL REQUIREMENTS (NOT JUST TEXT):
+- Include meaningful visuals in each section, not only Text
+- Use Axes/NumberPlane for graphs where relevant (e.g., limits)
+- Use Shapes (Circle, Square, Arrow), VGroup, SurroundingRectangle, Brace to highlight ideas
+- Use Create(), Write(), Transform(), MoveAlongPath() animations
+- Keep on-screen text to 1-2 short lines; prefer bullet phrases over paragraphs
+- Ensure text fits the frame: use shorter phrases or scale_to_fit_width if needed
 
 CRITICAL: Text must be clearly visible with font_size=48 or larger!
 NEVER use font_size less than 48 - this makes text invisible!
@@ -168,6 +179,7 @@ CRITICAL TIMING REQUIREMENTS - YOU MUST FOLLOW THESE EXACTLY:
 - Each text element must appear for 3-5 seconds using Wait()
 - Use FadeIn() and FadeOut() for ALL text elements
 - Total scene duration MUST be 2-3 minutes (120-180 seconds)
+- If available, match total Wait() time to approximately ${targetDurationSec ?? 150} seconds
 - Add Wait(3) between each content section
 - Use this exact pattern: FadeIn(text), Wait(4), FadeOut(text), Wait(1)
 
@@ -182,6 +194,11 @@ IMPORTANT: Use Manim Community v0.19.0 syntax:
 - Shapes: Circle(radius=1, stroke_width=2, fill_opacity=0.5)
 - Animations: text.animate.shift(UP), circle.animate.scale(2)
 - Timing: Wait(3), FadeIn(text), FadeOut(text)
+
+VISUAL REQUIREMENTS:
+- Include Axes/NumberPlane where appropriate and animate plotted points/curves
+- Include at least one diagram/shape transform per section (e.g., Create(axes), Create(circle), Transform(circle, square))
+- Use VGroup with bullet phrases (max 2 lines) and scale_to_fit_width if necessary
 
 CRITICAL: Text must be clearly visible with font_size=48 or larger!
 NEVER use font_size less than 48 - this makes text invisible!
@@ -198,7 +215,7 @@ Generate ONLY the Python code:`;
       model: "gpt-4",
       messages: [
         { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt }
+        { role: "user", content: userPrompt.replace('${'+'TARGET_SECONDS'+'}', String(targetDurationSec ?? 150)) }
       ],
       temperature: 0.7,
       max_tokens: 2000

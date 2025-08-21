@@ -127,7 +127,20 @@ async function generateContentAsync(seriesId: number, request: VideoGenerationRe
       updateProgress(progressStep + 5, `Generating Manim animation...`);
       
       const manimGenerator = new ManimGenerator();
-      const manimCode = await manimGenerator.generateManimCode(uniqueSeriesTitle, uniqueEpisodeTitle, script.script);
+      // Aim for the audio length as the target total Wait() time (cap to 180 sec)
+      const approxTargetSec = (() => {
+        const durText = (script.duration || request.episodeDuration || '').toLowerCase();
+        if (durText.includes('2-3')) return 150;
+        if (durText.includes('3-5')) return 240;
+        return 150;
+      })();
+      const manimCode = await manimGenerator.generateManimCode(
+        uniqueSeriesTitle,
+        uniqueEpisodeTitle,
+        script.script,
+        3,
+        approxTargetSec
+      );
       
       // Create the Manim file
       const fileName = `series-${seriesId}-episode-${episode.episodeNumber}-${Date.now()}.py`;
