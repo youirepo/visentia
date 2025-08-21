@@ -12,7 +12,7 @@ export default function Footer() {
               EduVideoAI
             </h3>
             <p className="text-neutral-300 mb-4 max-w-md">
-              Transform any educational topic into engaging video series with the power of AI. Make learning accessible, visual, and interactive.
+              Transform any educational topic into engaging video with the power of AI. Make learning accessible, visual, and interactive.
             </p>
             <div className="flex space-x-4">
               <a href="#" className="text-neutral-400 hover:text-white transition-colors">
