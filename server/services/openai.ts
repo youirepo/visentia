@@ -270,8 +270,8 @@ export async function generateExplainerScript(
 
 Subject: ${subject}
 Difficulty Level: ${difficultyLevel}
-Style: ${style}
-Target Duration: ${targetDuration}
+Style: Visual and Demonstrative
+Target Duration: 2-3 minutes
 
 Generate a comprehensive explainer script that follows this structure:
 

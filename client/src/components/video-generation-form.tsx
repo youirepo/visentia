@@ -19,8 +19,8 @@ export default function VideoGenerationForm({ onGenerationStart }: VideoGenerati
     topic: "",
     subject: "",
     difficultyLevel: "",
-    style: "",
-    videoDuration: "",
+    style: "Visual and Demonstrative",
+    videoDuration: "2-3 minutes",
   });
 
   const { toast } = useToast();
@@ -58,10 +58,10 @@ export default function VideoGenerationForm({ onGenerationStart }: VideoGenerati
       return;
     }
 
-    if (!formData.subject || !formData.difficultyLevel || !formData.style || !formData.videoDuration) {
+    if (!formData.subject || !formData.difficultyLevel) {
       toast({
         title: "Missing Information",
-        description: "Please fill in all required fields",
+        description: "Please fill in subject and depth level",
         variant: "destructive",
       });
       return;
@@ -71,7 +71,8 @@ export default function VideoGenerationForm({ onGenerationStart }: VideoGenerati
     const seriesRequest = {
       ...formData,
       totalEpisodes: "1 episode",
-      episodeDuration: formData.videoDuration,
+      episodeDuration: "2-3 minutes",
+      style: "Visual and Demonstrative",
     };
 
     generateMutation.mutate(seriesRequest as VideoGenerationRequest);
@@ -146,42 +147,19 @@ export default function VideoGenerationForm({ onGenerationStart }: VideoGenerati
             </div>
           </div>
 
-          {/* Style and Duration Section */}
+          {/* Style and Duration: fixed for MVP */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-3">
-              <Label htmlFor="style" className="block text-lg font-semibold text-neutral-800">
-                Style
-              </Label>
-              <Select value={formData.style} onValueChange={(value) => setFormData({ ...formData, style: value })}>
-                <SelectTrigger className="w-full px-4 py-3 border border-neutral-300 rounded-lg text-base">
-                  <SelectValue placeholder="Select style" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Engaging and Interactive">Engaging & Interactive</SelectItem>
-                  <SelectItem value="Formal and Academic">Formal & Academic</SelectItem>
-                  <SelectItem value="Story-based Learning">Story-based Learning</SelectItem>
-                  <SelectItem value="Visual and Demonstrative">Visual & Demonstrative</SelectItem>
-                  <SelectItem value="Conversational and Friendly">Conversational & Friendly</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="space-y-1">
+              <Label className="block text-lg font-semibold text-neutral-800">Style</Label>
+              <div className="px-4 py-3 border border-neutral-200 rounded-lg bg-neutral-50 text-neutral-700">
+                Visual & Demonstrative (fixed)
+              </div>
             </div>
-            
-            <div className="space-y-3">
-              <Label htmlFor="duration" className="block text-lg font-semibold text-neutral-800">
-                Video Duration
-              </Label>
-              <Select value={formData.videoDuration} onValueChange={(value) => setFormData({ ...formData, videoDuration: value })}>
-                <SelectTrigger className="w-full px-4 py-3 border border-neutral-300 rounded-lg text-base">
-                  <SelectValue placeholder="Select duration" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="2-3 minutes">2-3 minutes</SelectItem>
-                  <SelectItem value="3-5 minutes">3-5 minutes</SelectItem>
-                  <SelectItem value="5-8 minutes">5-8 minutes</SelectItem>
-                  <SelectItem value="8-12 minutes">8-12 minutes</SelectItem>
-                  <SelectItem value="12-15 minutes">12-15 minutes</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="space-y-1">
+              <Label className="block text-lg font-semibold text-neutral-800">Video Duration</Label>
+              <div className="px-4 py-3 border border-neutral-200 rounded-lg bg-neutral-50 text-neutral-700">
+                2-3 minutes (fixed)
+              </div>
             </div>
           </div>
 
