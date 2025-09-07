@@ -106,6 +106,13 @@ MANIM v0.19.0 SPECIFIC REQUIREMENTS:
 - Use 'animate' for animations
 - Use proper timing: Wait(seconds), FadeIn(), FadeOut()
 
+TEXT FIT AND LEGIBILITY RULES (MANDATORY):
+- For every Text or MathTex created, immediately call:
+  - obj.scale_to_fit_width(config.frame_width*0.90)
+  - If the object is still too tall, also call: obj.scale_to_fit_height(config.frame_height*0.85)
+- Keep on-screen text to 1–2 short lines; prefer bullets over paragraphs
+- Do NOT reduce font_size below 48; prefer splitting text into multiple bullets instead
+
 CRITICAL TIMING REQUIREMENTS - YOU MUST FOLLOW THESE EXACTLY:
 - Each text element must appear for 3-5 seconds using Wait()
 - Use FadeIn() and FadeOut() for ALL text elements
@@ -143,6 +150,7 @@ VISUAL REQUIREMENTS (NOT JUST TEXT):
 
 CRITICAL: Text must be clearly visible with font_size=48 or larger!
 NEVER use font_size less than 48 - this makes text invisible!
+ALWAYS scale text to fit the frame width (90%) and height (85% if needed) using scale_to_fit_width/scale_to_fit_height immediately after creation.
 
 MANIM v0.19.0 SPECIFIC REQUIREMENTS:
 - Use 'font_size' parameter instead of 'size' for Text objects
@@ -197,6 +205,12 @@ IMPORTANT: Use Manim Community v0.19.0 syntax:
 - Shapes: Circle(radius=1, stroke_width=2, fill_opacity=0.5)
 - Animations: text.animate.shift(UP), circle.animate.scale(2)
 - Timing: Wait(3), FadeIn(text), FadeOut(text)
+
+TEXT FIT REQUIREMENT:
+- After creating any Text or MathTex, immediately call:
+  obj.scale_to_fit_width(config.frame_width*0.90)
+  and if needed also: obj.scale_to_fit_height(config.frame_height*0.85)
+Ensure text remains readable (equivalent font size ~48 or larger). Prefer splitting long phrases into bullets over excessive scaling.
 
 VISUAL REQUIREMENTS:
 - Include Axes/NumberPlane where appropriate and animate plotted points/curves

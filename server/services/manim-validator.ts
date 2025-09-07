@@ -92,6 +92,17 @@ export class ManimCodeValidator {
       }
     }
     
+    // Require scale_to_fit_width for text and math to ensure frame fit
+    {
+      const textObjs = (code.match(/Text\(/g) || []).length;
+      const mathObjs = (code.match(/MathTex\(/g) || []).length;
+      const expectedScales = textObjs + mathObjs;
+      const hasScaleWidth = (code.match(/\.scale_to_fit_width\(config\.frame_width\s*\*\s*0\.90\)/g) || []).length;
+      if (expectedScales > 0 && hasScaleWidth < expectedScales) {
+        errors.push('Each Text/MathTex must be immediately scaled with scale_to_fit_width(config.frame_width*0.90) for frame fit');
+      }
+    }
+
     // Check for proper timing and animations
     if (!code.includes('Wait(') && !code.includes('FadeIn(') && !code.includes('FadeOut(')) {
       errors.push('Scene should include proper timing with Wait(), FadeIn(), and FadeOut() for smooth transitions');
