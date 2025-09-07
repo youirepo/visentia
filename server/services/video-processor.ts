@@ -104,18 +104,36 @@ export async function combineAudioAndVideo(
     const outputFileName = `series-${seriesId}-episode-${episodeNumber}-${timestamp}.mp4`;
     const outputPath = path.join(outputDir, outputFileName);
     
-    // Get audio duration first
+    // Get audio duration
     const audioDurationCommand = `ffprobe -v quiet -show_entries format=duration -of csv=p=0 "${audioPath}"`;
     const { stdout: audioDurationOutput } = await execAsync(audioDurationCommand);
     const audioDuration = parseFloat(audioDurationOutput.trim());
-    
     console.log(`Audio duration: ${audioDuration}s`);
-    
-    // Use FFmpeg to combine audio and video with better sync
-    // -shortest flag ensures video matches audio duration
-    // -vf scale ensures video dimensions are even (required for some codecs)
-    const command = `ffmpeg -i "${videoPath}" -i "${audioPath}" -c:v libx264 -c:a aac -shortest -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" "${outputPath}"`;
-    
+
+    // Get video duration
+    const videoDurationCommand = `ffprobe -v quiet -show_entries format=duration -of csv=p=0 "${videoPath}"`;
+    const { stdout: videoDurationOutput } = await execAsync(videoDurationCommand);
+    const videoDuration = parseFloat(videoDurationOutput.trim());
+    console.log(`Video duration: ${videoDuration}s`);
+
+    // Build filters and total duration so output never cuts off prematurely
+    const audioLonger = audioDuration > videoDuration;
+    const durationDiff = Math.max(0, (audioLonger ? audioDuration - videoDuration : videoDuration - audioDuration));
+    const targetDuration = Math.max(audioDuration, videoDuration);
+
+    // Video filter: always scale to even dimensions; if audio is longer, extend last frame to match
+    const vf = audioLonger
+      ? `scale=trunc(iw/2)*2:trunc(ih/2)*2,tpad=stop_mode=clone:stop_duration=${durationDiff.toFixed(3)}`
+      : `scale=trunc(iw/2)*2:trunc(ih/2)*2`;
+
+    // Audio filter: if video is longer, pad silence to match
+    const af = audioLonger
+      ? 'anull' // no-op when audio is already longer
+      : `apad=pad_dur=${durationDiff.toFixed(3)}`;
+
+    // Limit output to the intended max duration explicitly
+    const command = `ffmpeg -i "${videoPath}" -i "${audioPath}" -c:v libx264 -c:a aac -vf "${vf}" -af "${af}" -t ${targetDuration.toFixed(3)} "${outputPath}"`;
+
     console.log(`Executing FFmpeg: ${command}`);
     const { stdout, stderr } = await execAsync(command);
     

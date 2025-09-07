@@ -23,7 +23,9 @@ export class ManimGenerator {
         const generatedCode = await this.generateCodeWithChatGPT(
           seriesTitle,
           episodeTitle,
-          content
+          content,
+          undefined,
+          targetDurationSec
         );
 
         console.log(`Attempt ${attempt}: Generated initial Manim code`);
@@ -55,7 +57,8 @@ export class ManimGenerator {
             seriesTitle,
             episodeTitle,
             content,
-            validationResult.feedback
+            validationResult.feedback,
+            targetDurationSec
           );
           
           // Try the improved code
