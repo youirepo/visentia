@@ -33,6 +33,13 @@ export class ManimGenerator {
         // Validate and potentially fix the code
         const validationResult = await this.validator.validateAndFix(generatedCode);
         
+        console.log(`Attempt ${attempt}: Validation result:`, {
+          isValid: validationResult.isValid,
+          hasFixedCode: !!validationResult.fixedCode,
+          errors: validationResult.errors,
+          feedback: validationResult.feedback
+        });
+        
         if (validationResult.isValid) {
           console.log(`Attempt ${attempt}: Code validation successful`);
           return validationResult.code;
@@ -42,6 +49,12 @@ export class ManimGenerator {
         if (validationResult.fixedCode) {
           console.log(`Attempt ${attempt}: Trying fixed code from validator`);
           const retryValidation = await this.validator.validateAndFix(validationResult.fixedCode);
+          
+          console.log(`Attempt ${attempt}: Fixed code validation result:`, {
+            isValid: retryValidation.isValid,
+            errors: retryValidation.errors,
+            feedback: retryValidation.feedback
+          });
           
           if (retryValidation.isValid) {
             console.log(`Attempt ${attempt}: Fixed code validation successful`);

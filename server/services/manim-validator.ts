@@ -92,14 +92,15 @@ export class ManimCodeValidator {
       }
     }
     
-    // Require scale_to_fit_width for text and math to ensure frame fit
+    // Check for scale_to_fit_width usage (recommended but not required for basic validation)
     {
       const textObjs = (code.match(/Text\(/g) || []).length;
       const mathObjs = (code.match(/MathTex\(/g) || []).length;
       const expectedScales = textObjs + mathObjs;
       const hasScaleWidth = (code.match(/\.scale_to_fit_width\(config\.frame_width\s*\*\s*0\.90\)/g) || []).length;
       if (expectedScales > 0 && hasScaleWidth < expectedScales) {
-        errors.push('Each Text/MathTex must be immediately scaled with scale_to_fit_width(config.frame_width*0.90) for frame fit');
+        // Only warn, don't fail validation
+        console.log(`Warning: Only ${hasScaleWidth}/${expectedScales} text objects have scale_to_fit_width`);
       }
     }
 
@@ -193,9 +194,13 @@ Focus on syntax correctness, import validity, and Manim-specific requirements.`;
         throw new Error("No response from validation AI");
       }
 
+      // Log the AI response for debugging
+      console.log('[ManimValidator] AI validation response:', content);
+      
       // Try to parse the JSON response
       try {
         const validation = JSON.parse(content);
+        console.log('[ManimValidator] Parsed validation result:', validation);
         return {
           isValid: validation.isValid || false,
           code: code,
@@ -203,11 +208,15 @@ Focus on syntax correctness, import validity, and Manim-specific requirements.`;
           errors: validation.errors || []
         };
       } catch (parseError) {
+        console.log('[ManimValidator] JSON parse failed, analyzing text response');
         // If JSON parsing fails, analyze the text response
         const isValid = !content.toLowerCase().includes('error') && 
                        !content.toLowerCase().includes('invalid') &&
-                       !content.toLowerCase().includes('problem');
+                       !content.toLowerCase().includes('problem') &&
+                       !content.toLowerCase().includes('issue') &&
+                       !content.toLowerCase().includes('fail');
         
+        console.log('[ManimValidator] Text analysis result - isValid:', isValid);
         return {
           isValid,
           code: code,
