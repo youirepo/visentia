@@ -105,6 +105,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Handle CORS preflight for video files
+  app.options("/api/video/:filename", (req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Range');
+    res.status(200).end();
+  });
+
   // Serve video files
   app.get("/api/video/:filename", (req, res) => {
     try {
@@ -119,6 +127,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const fileSize = stat.size;
       const range = req.headers.range;
       
+      // Set CORS headers for video streaming
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Range');
+      
       if (range) {
         const parts = range.replace(/bytes=/, "").split("-");
         const start = parseInt(parts[0], 10);
@@ -130,6 +143,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           'Accept-Ranges': 'bytes',
           'Content-Length': chunksize,
           'Content-Type': 'video/mp4',
+          'Cache-Control': 'public, max-age=31536000',
         };
         res.writeHead(206, head);
         file.pipe(res);
@@ -137,11 +151,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const head = {
           'Content-Length': fileSize,
           'Content-Type': 'video/mp4',
+          'Accept-Ranges': 'bytes',
+          'Cache-Control': 'public, max-age=31536000',
         };
         res.writeHead(200, head);
         fs.createReadStream(videoPath).pipe(res);
       }
     } catch (error) {
+      console.error('Error serving video:', error);
       res.status(500).json({ message: "Failed to serve video file" });
     }
   });

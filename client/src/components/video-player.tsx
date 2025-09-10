@@ -43,8 +43,13 @@ export default function VideoPlayer({
 
   const handleDownload = () => {
     if (currentEpisode?.videoUrl) {
-      // In a real implementation, this would trigger the actual download
-      window.open(currentEpisode.videoUrl, '_blank');
+      // Create a temporary link to trigger download
+      const link = document.createElement('a');
+      link.href = currentEpisode.videoUrl;
+      link.download = `${currentEpisode.title}.mp4`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
   };
 
@@ -88,6 +93,16 @@ export default function VideoPlayer({
               autoPlay={false}
               playsInline
               crossOrigin="anonymous"
+              onError={(e) => {
+                console.error('Video load error:', e);
+                console.error('Video URL:', currentEpisode.videoUrl);
+              }}
+              onLoadStart={() => {
+                console.log('Video loading started:', currentEpisode.videoUrl);
+              }}
+              onCanPlay={() => {
+                console.log('Video can play:', currentEpisode.videoUrl);
+              }}
             >
               <source src={currentEpisode.videoUrl} type="video/mp4" />
               Your browser does not support the video tag.
