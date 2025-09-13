@@ -199,10 +199,17 @@ Focus on syntax correctness, import validity, and Manim-specific requirements.`;
       
       // Try to parse the JSON response
       try {
-        const validation = JSON.parse(content);
+        // Look for JSON in the response (might be wrapped in markdown)
+        let jsonContent = content;
+        const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/);
+        if (jsonMatch) {
+          jsonContent = jsonMatch[1];
+        }
+        
+        const validation = JSON.parse(jsonContent);
         console.log('[ManimValidator] Parsed validation result:', validation);
         return {
-          isValid: validation.isValid || false,
+          isValid: validation.isValid === true,
           code: code,
           feedback: validation.feedback || 'Validation completed',
           errors: validation.errors || []
@@ -214,7 +221,11 @@ Focus on syntax correctness, import validity, and Manim-specific requirements.`;
                        !content.toLowerCase().includes('invalid') &&
                        !content.toLowerCase().includes('problem') &&
                        !content.toLowerCase().includes('issue') &&
-                       !content.toLowerCase().includes('fail');
+                       !content.toLowerCase().includes('fail') &&
+                       (content.toLowerCase().includes('correct') || 
+                        content.toLowerCase().includes('valid') ||
+                        content.toLowerCase().includes('good') ||
+                        content.toLowerCase().includes('proper'));
         
         console.log('[ManimValidator] Text analysis result - isValid:', isValid);
         return {
