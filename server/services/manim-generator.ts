@@ -153,13 +153,16 @@ IMPORTANT: Use Manim Community v0.19.0 syntax:
 - Square(fill_opacity=0.5)
 - text.animate.shift(UP)
 
-VISUAL REQUIREMENTS (NOT JUST TEXT):
-- Include meaningful visuals in each section, not only Text
-- Use Axes/NumberPlane for graphs where relevant (e.g., limits)
-- Use Shapes (Circle, Square, Arrow), VGroup, SurroundingRectangle, Brace to highlight ideas
-- Use Create(), Write(), Transform(), MoveAlongPath() animations
-- Keep on-screen text to 1-2 short lines; prefer bullet phrases over paragraphs
-- Ensure text fits the frame: use shorter phrases or scale_to_fit_width if needed
+VISUAL REQUIREMENTS (PRIORITIZE DIAGRAMS AND VISUALS):
+- MINIMIZE TEXT: Use diagrams, shapes, and visual representations instead of text whenever possible
+- MANDATORY VISUALS: Each major concept MUST have at least one visual diagram, not just text
+- Use Axes/NumberPlane for mathematical concepts, graphs, and data visualization
+- Use Shapes extensively: Circle, Square, Rectangle, Arrow, Line, Polygon for geometric concepts
+- Use VGroup to combine related visual elements into cohesive diagrams
+- Use SurroundingRectangle, Brace, and highlights to emphasize key parts
+- Use Create(), Write(), Transform(), MoveAlongPath(), DrawBorderThenFill() animations
+- Text should be MINIMAL: only 1-2 words per concept, use visual metaphors instead
+- Prefer visual storytelling over text explanations
 
 CRITICAL: Text must be clearly visible with font_size=48 or larger!
 NEVER use font_size less than 48 - this makes text invisible!
@@ -207,17 +210,28 @@ CRITICAL TIMING REQUIREMENTS - YOU MUST FOLLOW THESE EXACTLY:
 - Add Wait(3) between each content section
 - Use this exact pattern: FadeIn(text), Wait(4), FadeOut(text), Wait(1)
 
-EXAMPLE STRUCTURE:
-1. Title appears with FadeIn, stays for 5 seconds, fades out (no "Welcome" phrasing)
-2. Content section 1: FadeIn, Wait(4), FadeOut, Wait(1)
-3. Content section 2: FadeIn, Wait(4), FadeOut, Wait(1)
-4. Continue pattern to reach 2-3 minutes total
+EXAMPLE VISUAL STRUCTURE:
+1. Title with simple visual element (icon/shape), stays for 5 seconds
+2. Visual concept 1: Create diagram → Animate → Highlight key parts → Wait(4)
+3. Visual concept 2: Create different diagram → Transform/evolve → Wait(4)
+4. Visual concept 3: Create flowchart/process diagram → Animate steps → Wait(4)
+5. Visual summary: Combine all diagrams into overview → Wait(4)
+6. Continue with visual storytelling to reach 2-3 minutes total
 
 IMPORTANT: Use Manim Community v0.19.0 syntax:
-- Text objects: Text("Hello", font_size=48, color=WHITE)
+- Text objects: Text("Hello", font_size=48, color=WHITE) [MINIMIZE TEXT]
 - Shapes: Circle(radius=1, stroke_width=2, fill_opacity=0.5)
 - Animations: text.animate.shift(UP), circle.animate.scale(2)
 - Timing: Wait(3), FadeIn(text), FadeOut(text)
+
+DIAGRAM EXAMPLES TO INCLUDE:
+- Flowcharts: Use Rectangle() + Arrow() to show process flows
+- Venn diagrams: Use Circle() with different fill_opacity for overlaps
+- Timelines: Use Line() + Rectangle() + Text() for chronological events
+- Mathematical graphs: Use Axes() + plot() for functions and data
+- Molecular diagrams: Use Circle() + Line() for atomic structures
+- Force diagrams: Use Arrow() with different colors for different forces
+- Geometric proofs: Use shapes that transform to show relationships
 
 TEXT FIT REQUIREMENT:
 - After creating any Text or MathTex, immediately call:
@@ -225,10 +239,15 @@ TEXT FIT REQUIREMENT:
   and if needed also: obj.scale_to_fit_height(config.frame_height*0.85)
 Ensure text remains readable (equivalent font size ~48 or larger). Prefer splitting long phrases into bullets over excessive scaling.
 
-VISUAL REQUIREMENTS:
-- Include Axes/NumberPlane where appropriate and animate plotted points/curves
-- Include at least one diagram/shape transform per section (e.g., Create(axes), Create(circle), Transform(circle, square))
-- Use VGroup with bullet phrases (max 2 lines) and scale_to_fit_width if necessary
+VISUAL REQUIREMENTS (DIAGRAM-FOCUSED):
+- MINIMIZE TEXT: Replace text explanations with visual diagrams wherever possible
+- MANDATORY: Each concept must have a visual diagram (shapes, graphs, charts, geometric representations)
+- Use Axes/NumberPlane extensively for mathematical concepts and animate data points/curves
+- Create visual metaphors: use shapes to represent abstract concepts (circles for atoms, arrows for forces, etc.)
+- Include multiple diagram types: flowcharts, Venn diagrams, geometric shapes, graphs, timelines
+- Animate transformations between related concepts (morphing shapes, connecting arrows)
+- Use VGroup to create complex visual compositions instead of text lists
+- Prefer visual storytelling: show processes through animated diagrams rather than describing them
 
 CRITICAL: Text must be clearly visible with font_size=48 or larger!
 NEVER use font_size less than 48 - this makes text invisible!
