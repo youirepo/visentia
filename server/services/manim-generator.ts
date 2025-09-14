@@ -228,10 +228,16 @@ DIAGRAM EXAMPLES TO INCLUDE:
 - Flowcharts: Use Rectangle() + Arrow() to show process flows
 - Venn diagrams: Use Circle() with different fill_opacity for overlaps
 - Timelines: Use Line() + Rectangle() + Text() for chronological events
-- Mathematical graphs: Use Axes() + plot() for functions and data
+- Mathematical graphs: Use Axes() + get_graph() then .set_color() for functions and data
 - Molecular diagrams: Use Circle() + Line() for atomic structures
 - Force diagrams: Use Arrow() with different colors for different forces
 - Geometric proofs: Use shapes that transform to show relationships
+
+CRITICAL MANIM SYNTAX RULES:
+- For graph colors: axes.get_graph(func).set_color(RED) NOT get_graph(func, color=RED)
+- For text colors: Text("Hello").set_color(BLUE) NOT Text("Hello", color=BLUE)
+- For shape colors: Circle().set_color(GREEN) NOT Circle(color=GREEN)
+- Always use .set_color() method instead of color parameter in constructors
 
 TEXT FIT REQUIREMENT:
 - After creating any Text or MathTex, immediately call:
