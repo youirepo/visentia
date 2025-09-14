@@ -239,6 +239,7 @@ CRITICAL MANIM SYNTAX RULES:
 - For shape colors: Circle().set_color(GREEN) NOT Circle(color=GREEN)
 - For frame dimensions: Use config.frame_width and config.frame_height NOT FRAME_WIDTH or FRAME_HEIGHT
 - For scaling: obj.scale_to_fit_width(config.frame_width*0.90) NOT scale_to_fit_width(FRAME_WIDTH*0.90)
+- NEVER use ImageMobject with external files - create visual elements with shapes, text, and geometric objects
 - Always use .set_color() method instead of color parameter in constructors
 
 TEXT FIT REQUIREMENT:
