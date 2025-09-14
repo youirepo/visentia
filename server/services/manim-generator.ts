@@ -237,6 +237,8 @@ CRITICAL MANIM SYNTAX RULES:
 - For graph colors: axes.get_graph(func).set_color(RED) NOT get_graph(func, color=RED)
 - For text colors: Text("Hello").set_color(BLUE) NOT Text("Hello", color=BLUE)
 - For shape colors: Circle().set_color(GREEN) NOT Circle(color=GREEN)
+- For frame dimensions: Use config.frame_width and config.frame_height NOT FRAME_WIDTH or FRAME_HEIGHT
+- For scaling: obj.scale_to_fit_width(config.frame_width*0.90) NOT scale_to_fit_width(FRAME_WIDTH*0.90)
 - Always use .set_color() method instead of color parameter in constructors
 
 TEXT FIT REQUIREMENT:
