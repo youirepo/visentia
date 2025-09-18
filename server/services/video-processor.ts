@@ -42,8 +42,8 @@ export async function renderManimVideo(
     }
     
     const sceneName = manimFile.fileName.replace('.py', '');
-    // Use low quality without preview (-ql). The -p flag opens a preview window, which we want to avoid
-    const command = `manim -ql ${filePath} ${sceneName} -o ${sceneName}`;
+    // Use low quality without preview (-ql). Do not pass an explicit scene name to avoid mismatches; render first scene in file.
+    const command = `manim -ql ${filePath} -o ${sceneName}`;
     
     console.log(`Executing: ${command}`);
     const { stdout, stderr } = await execAsync(command, { cwd: manimDir });

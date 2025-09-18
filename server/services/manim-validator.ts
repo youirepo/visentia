@@ -11,22 +11,29 @@ export interface ValidationResult {
 export class ManimCodeValidator {
   async validateAndFix(code: string): Promise<ValidationResult> {
     try {
+      // Lightweight auto-fixes for known Manim v0.19 API changes
+      let preprocessed = code
+        .replace(/\bShowCreation\s*\(/g, 'Create(')
+        .replace(/\bTex\s*\(/g, 'MathTex(')
+        .replace(/\bFRAME_WIDTH\b/g, 'config.frame_width')
+        .replace(/\bFRAME_HEIGHT\b/g, 'config.frame_height');
+
       // First, try to validate the code structure
-      const structuralValidation = this.validateCodeStructure(code);
+      const structuralValidation = this.validateCodeStructure(preprocessed);
       
       if (structuralValidation.isValid) {
         // If structure is good, try to run a basic syntax check
-        const syntaxValidation = await this.validateSyntaxWithAI(code);
+        const syntaxValidation = await this.validateSyntaxWithAI(preprocessed);
         return syntaxValidation;
       }
       
       // If structure has issues, try to fix them
-      const fixedCode = await this.fixCodeWithAI(code, structuralValidation.feedback);
+      const fixedCode = await this.fixCodeWithAI(preprocessed, structuralValidation.feedback);
       const fixedValidation = await this.validateSyntaxWithAI(fixedCode);
       
       return {
         isValid: fixedValidation.isValid,
-        code: code,
+        code: preprocessed,
         fixedCode: fixedCode,
         feedback: structuralValidation.feedback,
         errors: structuralValidation.errors
