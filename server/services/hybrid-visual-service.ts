@@ -2,8 +2,12 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import type { Scene, SceneBasedScript } from './scene-generator.js';
 import { generateAudioFromScript } from './openai-tts.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const execAsync = promisify(exec);
 
