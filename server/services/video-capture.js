@@ -4,9 +4,13 @@
  * Captures HTML scenes as MP4 videos with precise timing
  */
 
-const puppeteer = require('puppeteer');
-const fs = require('fs');
-const path = require('path');
+import puppeteer from 'puppeteer';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 class VideoCaptureService {
     constructor() {
@@ -160,10 +164,9 @@ async function main() {
 }
 
 // Export for use as module
-module.exports = VideoCaptureService;
+export default VideoCaptureService;
 
 // Run CLI if called directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
     main();
 }
-
