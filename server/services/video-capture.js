@@ -69,23 +69,58 @@ class VideoCaptureService {
                 // Continue even if scene ready flag isn't set
             }
 
-            console.log('Scene ready, starting video capture...');
+            console.log('Scene ready, capturing screenshots...');
 
-            // Start screencast
+            // Create a temporary directory for screenshots
+            const tempDir = path.join(__dirname, '..', 'temp-screenshots');
+            if (!fs.existsSync(tempDir)) {
+                fs.mkdirSync(tempDir, { recursive: true });
+            }
+
+            const screenshotPrefix = path.join(tempDir, `frame_${Date.now()}`);
+            const fps = 30;
+            const totalFrames = Math.ceil(duration * fps);
+            const frameInterval = 1000 / fps;
+
+            console.log(`Capturing ${totalFrames} frames at ${fps} FPS...`);
+
+            // Capture frames
+            for (let i = 0; i < totalFrames; i++) {
+                const screenshotPath = `${screenshotPrefix}_${i.toString().padStart(6, '0')}.png`;
+                await page.screenshot({
+                    path: screenshotPath,
+                    type: 'png',
+                    fullPage: false
+                });
+                
+                // Wait for next frame
+                if (i < totalFrames - 1) {
+                    await page.waitForTimeout(frameInterval);
+                }
+            }
+
+            await page.close();
+
+            // Convert screenshots to video using FFmpeg
             const videoPath = path.resolve(outputPath);
-            await page.screencast({
-                path: videoPath,
-                format: 'mp4',
-                everyNthFrame: 1
-            });
+            console.log('Converting screenshots to video...');
+            
+            const { exec } = await import('child_process');
+            const { promisify } = await import('util');
+            const execAsync = promisify(exec);
 
-            // Wait for the scene duration
-            const waitTime = Math.ceil(duration * 1000);
-            console.log(`Waiting for ${waitTime}ms (${duration}s)...`);
-            await page.waitForTimeout(waitTime);
+            const ffmpegCommand = `ffmpeg -y -framerate ${fps} -i "${screenshotPrefix}_%06d.png" -c:v libx264 -pix_fmt yuv420p "${videoPath}"`;
+            
+            await execAsync(ffmpegCommand);
 
-            // Stop screencast
-            await page.screencast(null);
+            // Clean up screenshots
+            console.log('Cleaning up temporary files...');
+            for (let i = 0; i < totalFrames; i++) {
+                const screenshotPath = `${screenshotPrefix}_${i.toString().padStart(6, '0')}.png`;
+                if (fs.existsSync(screenshotPath)) {
+                    fs.unlinkSync(screenshotPath);
+                }
+            }
 
             console.log(`Video captured: ${videoPath}`);
             return videoPath;
