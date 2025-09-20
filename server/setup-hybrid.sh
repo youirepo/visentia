@@ -18,8 +18,9 @@ else
     exit 1
 fi
 
-# Install Node.js dependencies for video capture
+# Install Node.js dependencies for video capture (from root directory)
 echo "📦 Installing Node.js dependencies..."
+cd ..
 npm install
 echo "✅ Node.js dependencies installed"
 
@@ -37,12 +38,10 @@ python3 -c "import jinja2, matplotlib, numpy, PIL; print('✅ Python dependencie
 
 # Test Node.js installation
 echo "🧪 Testing Node.js installation..."
-cd server
 node -e "console.log('✅ Node.js OK')" 2>/dev/null || {
     echo "❌ Node.js test failed"
     exit 1
 }
-cd ..
 
 echo "✅ Hybrid Visual Generator setup complete!"
 echo ""

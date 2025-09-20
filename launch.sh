@@ -90,11 +90,8 @@ if [ ! -d "server/generated-scenes" ] || [ ! -f "server/services/hybrid-visual-g
     ./server/setup-hybrid.sh
 fi
 
-# Change to server directory and start the server
+# Start the server from the root directory
 echo "🚀 Starting development server..."
-cd server
-
-# Start the server in the background
 echo "🔄 Launching server with: npm run dev"
 npm run dev &
 
@@ -116,8 +113,7 @@ else
     exit 1
 fi
 
-# Return to root directory
-cd ..
+# Already in root directory
 
 echo ""
 echo "🎉 Launch script completed successfully!"
