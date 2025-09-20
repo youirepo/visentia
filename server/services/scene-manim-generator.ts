@@ -105,9 +105,11 @@ SCENE REQUIREMENTS:
 
 TIMING REQUIREMENTS (CRITICAL FOR AUDIO-VIDEO SYNC):
 - Scene must last EXACTLY ${scene.duration} seconds (calculated from actual TTS audio duration)
-- Use self.wait(${scene.duration}) as the main timing mechanism at the end
+- Use ONLY self.wait() for timing - NO complex time calculations or self.renderer.time
+- Structure: Create objects → Animate objects → self.wait(${scene.duration}) at the end
 - Include FadeIn() and FadeOut() for smooth transitions
-- Add intermediate animations within the scene duration, but ensure total scene time = ${scene.duration}s
+- Keep animations simple and short, let self.wait() handle the timing
+- DO NOT use self.internal_time, self.renderer.time, or any time calculations
 - DO NOT exceed ${scene.duration} seconds - this will cause desynchronization
 
 VISUAL REQUIREMENTS (PRIORITIZE DIAGRAMS AND VISUALS):
@@ -152,6 +154,17 @@ Your response must be complete, executable Python code that includes:
 2. class YourSceneName(Scene):
 3. def construct(self): with all animations
 4. Proper indentation and syntax
+
+EXAMPLE TIMING STRUCTURE:
+```python
+def construct(self):
+    # Create objects
+    obj = Circle()
+    # Animate objects (keep animations short)
+    self.play(Create(obj), run_time=2)
+    # Wait for the rest of the duration
+    self.wait(${scene.duration} - 2)
+```
 
 Start your response with 'from manim import *' and end with the last line of Python code. Nothing else.`;
 
