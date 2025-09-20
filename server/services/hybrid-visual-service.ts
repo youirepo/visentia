@@ -284,3 +284,4 @@ export class HybridVisualService {
     return filename.replace(/[^\w\s-]/g, '').trim();
   }
 }
+

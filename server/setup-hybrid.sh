@@ -20,15 +20,8 @@ fi
 
 # Install Node.js dependencies for video capture
 echo "📦 Installing Node.js dependencies..."
-cd server
-if [ -f package-video-capture.json ]; then
-    cp package-video-capture.json package.json
-    npm install
-    echo "✅ Node.js dependencies installed"
-else
-    echo "⚠️  package-video-capture.json not found"
-fi
-cd ..
+npm install
+echo "✅ Node.js dependencies installed"
 
 # Make scripts executable
 echo "🔧 Making scripts executable..."
@@ -64,3 +57,4 @@ echo "  • Mermaid.js for diagrams"
 echo "  • KaTeX for math expressions"
 echo "  • Matplotlib for graphs"
 echo "  • Puppeteer for video capture"
+

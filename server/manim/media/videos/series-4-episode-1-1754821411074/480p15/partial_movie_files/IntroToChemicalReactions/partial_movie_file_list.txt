@@ -1,9 +1,0 @@
-# This file is used internally by FFMPEG.
-file 'file:/Users/ysola/Visentia/server/manim/media/videos/series-4-episode-1-1754821411074/480p15/partial_movie_files/IntroToChemicalReactions/1185818338_2939006404_223132457.mp4'
-file 'file:/Users/ysola/Visentia/server/manim/media/videos/series-4-episode-1-1754821411074/480p15/partial_movie_files/IntroToChemicalReactions/624642324_193429077_2568388110.mp4'
-file 'file:/Users/ysola/Visentia/server/manim/media/videos/series-4-episode-1-1754821411074/480p15/partial_movie_files/IntroToChemicalReactions/624642324_105223348_4233556945.mp4'
-file 'file:/Users/ysola/Visentia/server/manim/media/videos/series-4-episode-1-1754821411074/480p15/partial_movie_files/IntroToChemicalReactions/624642324_3298991474_1147788744.mp4'
-file 'file:/Users/ysola/Visentia/server/manim/media/videos/series-4-episode-1-1754821411074/480p15/partial_movie_files/IntroToChemicalReactions/624642324_446447876_3831432314.mp4'
-file 'file:/Users/ysola/Visentia/server/manim/media/videos/series-4-episode-1-1754821411074/480p15/partial_movie_files/IntroToChemicalReactions/624642324_1734327179_63092179.mp4'
-file 'file:/Users/ysola/Visentia/server/manim/media/videos/series-4-episode-1-1754821411074/480p15/partial_movie_files/IntroToChemicalReactions/624642324_1160940694_1548012474.mp4'
-file 'file:/Users/ysola/Visentia/server/manim/media/videos/series-4-episode-1-1754821411074/480p15/partial_movie_files/IntroToChemicalReactions/624642324_1754310298_3278671325.mp4'

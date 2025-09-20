@@ -110,3 +110,4 @@ Return JSON in this exact format:
     throw new Error(`Failed to generate scene-based script: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
+

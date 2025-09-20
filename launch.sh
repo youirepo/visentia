@@ -83,6 +83,13 @@ if [ ! -d "node_modules" ]; then
     npm install
 fi
 
+# Set up hybrid visual system if needed
+echo "🎨 Checking hybrid visual system..."
+if [ ! -d "server/generated-scenes" ] || [ ! -f "server/services/hybrid-visual-generator.py" ]; then
+    echo "🔧 Setting up hybrid visual system..."
+    ./server/setup-hybrid.sh
+fi
+
 # Change to server directory and start the server
 echo "🚀 Starting development server..."
 cd server

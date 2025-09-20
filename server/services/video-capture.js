@@ -166,3 +166,4 @@ module.exports = VideoCaptureService;
 if (require.main === module) {
     main();
 }
+

@@ -1,6 +1,6 @@
 // import { generateEducationalSeries } from "./educationalDemo.js";
 import { generateSceneBasedScript } from "./scene-generator.js";
-import { SceneProcessor } from "./scene-processor.js";
+import { HybridVisualService } from "./hybrid-visual-service.js";
 import { generateUniqueTitle } from "./title-generator.js";
 import { storage } from "../storage.js";
 import { optimizeScript } from "./script-optimizer.js";
@@ -75,9 +75,9 @@ async function generateContentAsync(seriesId: number, request: VideoGenerationRe
     
     updateProgress(progressStep, `Processing ${sceneScript.scenes.length} scenes: ${episodeTitle}...`);
 
-    // Process all scenes
-    const sceneProcessor = new SceneProcessor();
-    const processedScenes = await sceneProcessor.processScenes(
+    // Process all scenes using hybrid visual system
+    const hybridProcessor = new HybridVisualService();
+    const processedScenes = await hybridProcessor.processScenes(
       sceneScript,
       seriesId,
       1
@@ -86,7 +86,7 @@ async function generateContentAsync(seriesId: number, request: VideoGenerationRe
     updateProgress(progressStep + 40, "Stitching scenes together...");
     
     // Stitch all scenes together
-    const finalVideoPath = await sceneProcessor.stitchScenes(
+    const finalVideoPath = await hybridProcessor.stitchScenes(
       processedScenes.scenes,
       seriesId,
       1
