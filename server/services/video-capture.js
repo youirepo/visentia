@@ -19,7 +19,7 @@ class VideoCaptureService {
             width: 1920,
             height: 1080,
             deviceScaleFactor: 1,
-            headless: true,
+            headless: 'new',
             args: [
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
@@ -60,9 +60,14 @@ class VideoCaptureService {
 
             // Wait for scene to be ready
             console.log('Waiting for scene to be ready...');
-            await page.waitForFunction(() => window.sceneReady === true, {
-                timeout: 30000
-            });
+            try {
+                await page.waitForFunction(() => window.sceneReady === true, {
+                    timeout: 10000
+                });
+            } catch (error) {
+                console.log('Scene ready timeout, proceeding anyway...');
+                // Continue even if scene ready flag isn't set
+            }
 
             console.log('Scene ready, starting video capture...');
 

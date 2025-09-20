@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{scene.title}} - {{series.title}}</title>
+    <title>Indeterminate Form Introduction - Explaining L&#39;Hopital&#39;s Rule Visually</title>
     
     <!-- Reveal.js CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.css">
@@ -181,75 +181,45 @@
         <div class="slides">
             <section data-background-color="#ffffff">
                 <!-- Scene Title -->
-                <h1>{{scene.title}}</h1>
+                <h1>Indeterminate Form Introduction</h1>
                 
                 <!-- Scene Description -->
                 <div class="content-section" id="description">
-                    <p>{{scene.description}}</p>
+                    <p>Introduction to the concept of indeterminate forms in calculus</p>
                 </div>
                 
                 <!-- Math Content -->
-                {% if scene.math_content %}
-                <div class="content-section" id="math-content">
-                    {% for math_block in scene.math_content %}
-                    <div class="katex-display">{{math_block}}</div>
-                    {% endfor %}
-                </div>
-                {% endif %}
+                
                 
                 <!-- Diagram Content -->
-                {% if scene.diagram_content %}
-                <div class="content-section" id="diagram-content">
-                    {% for diagram in scene.diagram_content %}
-                    <div class="diagram-container">
-                        <div class="mermaid">{{diagram}}</div>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% endif %}
+                
                 
                 <!-- Graph Content -->
-                {% if scene.graph_content %}
-                <div class="content-section" id="graph-content">
-                    {% for graph in scene.graph_content %}
-                    <div class="graph-container">
-                        <canvas id="graph-{{loop.index}}" width="800" height="400"></canvas>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% endif %}
+                
                 
                 <!-- Animation Content -->
-                {% if scene.animation_content %}
-                <div class="content-section" id="animation-content">
-                    {% for animation in scene.animation_content %}
-                    <div class="animation-container" id="animation-{{loop.index}}">
-                        {{animation.html}}
-                    </div>
-                    {% endfor %}
-                </div>
-                {% endif %}
+                
                 
                 <!-- Text Content -->
-                {% if scene.text_content %}
+                
                 <div class="content-section" id="text-content">
-                    {% for text_block in scene.text_content %}
-                    <p>{{text_block}}</p>
-                    {% endfor %}
+                    
+                    <p>In calculus, we often encounter situations where the ratio of two quantities approaches an indeterminate form, such as 0 over 0 or infinity over infinity.</p>
+                    
                 </div>
-                {% endif %}
+                
             </section>
         </div>
     </div>
     
     <!-- Scene Timing Display -->
     <div class="scene-timing">
-        Duration: {{scene.duration}}s
+        Duration: 10.056s
     </div>
     
     <!-- Progress Indicator -->
     <div class="progress-indicator">
-        {{series.title}} - Scene {{scene.sceneNumber}}
+        Explaining L&#39;Hopital&#39;s Rule Visually - Scene 
     </div>
     
     <!-- Reveal.js JavaScript -->
@@ -278,10 +248,10 @@
         
         // Scene configuration
         const sceneConfig = {
-            duration: {{scene.duration}},
-            seriesTitle: "{{series.title}}",
-            sceneTitle: "{{scene.title}}",
-            sceneNumber: {{scene.sceneNumber}}
+            duration: 10.056,
+            seriesTitle: "Explaining L&#39;Hopital&#39;s Rule Visually",
+            sceneTitle: "Indeterminate Form Introduction",
+            sceneNumber: 
         };
         
         // Initialize Mermaid
@@ -330,23 +300,10 @@
             });
             
             // Add highlight animations if specified
-            {% if scene.highlights %}
-            {% for highlight in scene.highlights %}
-            sceneTimeline.to('#{{highlight.target}}', {
-                backgroundColor: '#ffeb3b',
-                duration: {{highlight.duration}},
-                yoyo: true,
-                repeat: {{highlight.repeat}}
-            }, {{highlight.delay}});
-            {% endfor %}
-            {% endif %}
+            
             
             // Initialize graphs if present
-            {% if scene.graph_content %}
-            {% for graph in scene.graph_content %}
-            initializeGraph({{loop.index}}, {{graph.config | tojson}});
-            {% endfor %}
-            {% endif %}
+            
             
             // Start the timeline
             sceneTimeline.play();
@@ -399,14 +356,6 @@
             setTimeout(initializeScene, 500); // Small delay to ensure everything is rendered
         });
         
-        // Fallback: Set sceneReady after a reasonable timeout if not set by animations
-        setTimeout(function() {
-            if (!window.sceneReady) {
-                console.log('Scene ready fallback triggered');
-                window.sceneReady = true;
-            }
-        }, 2000); // 2 second fallback
-        
         // Export scene data for video capture
         window.getSceneData = function() {
             return {
@@ -420,4 +369,3 @@
     </script>
 </body>
 </html>
-
