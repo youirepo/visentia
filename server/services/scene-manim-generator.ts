@@ -103,11 +103,12 @@ SCENE REQUIREMENTS:
 - Animation type: ${scene.animationType}
 - Scene description: ${scene.description}
 
-TIMING REQUIREMENTS:
-- Scene must last exactly ${scene.duration} seconds
-- Use Wait(${scene.duration}) as the main timing mechanism
+TIMING REQUIREMENTS (CRITICAL FOR AUDIO-VIDEO SYNC):
+- Scene must last EXACTLY ${scene.duration} seconds (calculated from actual TTS audio duration)
+- Use self.wait(${scene.duration}) as the main timing mechanism at the end
 - Include FadeIn() and FadeOut() for smooth transitions
-- Add intermediate animations within the scene duration
+- Add intermediate animations within the scene duration, but ensure total scene time = ${scene.duration}s
+- DO NOT exceed ${scene.duration} seconds - this will cause desynchronization
 
 VISUAL REQUIREMENTS (PRIORITIZE DIAGRAMS AND VISUALS):
 - MINIMIZE TEXT: Use diagrams, shapes, and visual representations instead of text

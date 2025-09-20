@@ -44,7 +44,7 @@ export class SceneProcessor {
       console.log(`Processing scene ${i + 1}/${script.scenes.length}: ${scene.title}`);
       
       try {
-        // Generate audio for this scene
+        // STEP 1: Generate audio for this scene FIRST
         const audioUrl = await generateAudioFromScript(
           scene.narration,
           scene.title,
@@ -52,9 +52,25 @@ export class SceneProcessor {
           episodeNumber
         );
         
-        // Generate Manim code for this scene
+        // STEP 2: Calculate exact audio duration using ffprobe
+        const audioFileName = audioUrl.split('/').pop();
+        const audioPath = path.join(process.cwd(), 'server', 'audio', audioFileName!);
+        
+        const audioDurationCommand = `ffprobe -v quiet -show_entries format=duration -of csv=p=0 "${audioPath}"`;
+        const { stdout: audioDurationOutput } = await execAsync(audioDurationCommand);
+        const actualAudioDuration = parseFloat(audioDurationOutput.trim());
+        
+        console.log(`Scene ${scene.sceneNumber} actual audio duration: ${actualAudioDuration}s`);
+        
+        // STEP 3: Create updated scene with actual audio duration
+        const timedScene = {
+          ...scene,
+          duration: actualAudioDuration
+        };
+        
+        // STEP 4: Generate Manim code with exact audio duration for perfect timing
         const manimCode = await this.manimGenerator.generateSceneManimCode(
-          scene,
+          timedScene,
           script.title,
           `Episode ${episodeNumber}`,
           3
@@ -84,19 +100,16 @@ if __name__ == "__main__":
           fullCode
         };
         
-        // Render the scene video
+        // STEP 5: Render the scene video with exact timing
         const videoPath = await renderManimVideo(manimFile, seriesId, episodeNumber);
         
-        // Get audio file path
-        const audioFileName = audioUrl.split('/').pop();
-        const audioPath = path.join(process.cwd(), 'server', 'audio', audioFileName!);
-        
+        // STEP 6: Store scene data with actual audio duration
         processedScenes.push({
           sceneNumber: scene.sceneNumber,
           title: scene.title,
           audioPath,
           videoPath,
-          duration: scene.duration
+          duration: actualAudioDuration
         });
         
         console.log(`Scene ${scene.sceneNumber} processed successfully`);
@@ -169,7 +182,8 @@ if __name__ == "__main__":
           ? 'anull'
           : `apad=pad_dur=${durationDiff.toFixed(3)}`;
         
-        const syncCommand = `ffmpeg -i "${scene.videoPath}" -i "${scene.audioPath}" -c:v libx264 -c:a aac -vf "${vf}" -af "${af}" -t ${targetDuration.toFixed(3)} "${syncedScenePath}"`;
+        // Use -shortest to avoid trailing silence or black frames
+        const syncCommand = `ffmpeg -i "${scene.videoPath}" -i "${scene.audioPath}" -c:v libx264 -c:a aac -vf "${vf}" -af "${af}" -shortest "${syncedScenePath}"`;
         
         console.log(`Syncing scene ${scene.sceneNumber}: ${syncCommand}`);
         await execAsync(syncCommand);
