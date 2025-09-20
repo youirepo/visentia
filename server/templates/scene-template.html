@@ -160,6 +160,88 @@
             transition: all 0.8s ease-out;
         }
         
+        /* Content wrapper */
+        .content-wrapper {
+            display: flex;
+            gap: 2rem;
+            align-items: flex-start;
+            max-width: 100%;
+        }
+        
+        .main-content {
+            flex: 2;
+            min-width: 0;
+        }
+        
+        .visual-elements {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+        }
+        
+        /* Visual placeholder */
+        .visual-placeholder {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            min-width: 200px;
+            min-height: 150px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .placeholder-icon {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            opacity: 0.8;
+        }
+        
+        .placeholder-text {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 500;
+        }
+        
+        /* Math display */
+        .math-display {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid #4a90e2;
+        }
+        
+        .math-expression {
+            font-family: 'Times New Roman', serif;
+            font-size: 1.5rem;
+            color: #ffffff;
+            text-align: center;
+            margin: 0.5rem 0;
+        }
+        
+        /* Diagram container */
+        .diagram-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid #3498db;
+        }
+        
+        .diagram-item {
+            font-size: 1rem;
+            color: #e8e8e8;
+            margin: 0.5rem 0;
+            text-align: center;
+        }
+        
         /* Responsive adjustments */
         @media (max-width: 768px) {
             .reveal {
@@ -233,9 +315,57 @@
                 <!-- Text Content -->
                 {% if scene.text_content %}
                 <div class="content-section" id="text-content">
-                    {% for text_block in scene.text_content %}
-                    <p>{{text_block}}</p>
-                    {% endfor %}
+                    <div class="content-wrapper">
+                        <div class="main-content">
+                            <h3>{{scene.title}}</h3>
+                            {% for text_block in scene.text_content %}
+                            <p>{{text_block}}</p>
+                            {% endfor %}
+                        </div>
+                        
+                        <!-- Visual Elements -->
+                        <div class="visual-elements">
+                            {% if scene.math_content %}
+                            <div class="math-display">
+                                {% for math in scene.math_content %}
+                                <div class="math-expression">{{math.expression}}</div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            
+                            {% if scene.diagram_content %}
+                            <div class="diagram-container">
+                                {% for diagram in scene.diagram_content %}
+                                <div class="diagram-item">{{diagram.description}}</div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            
+                            <!-- Default visual placeholder -->
+                            <div class="visual-placeholder">
+                                <div class="placeholder-icon">📊</div>
+                                <div class="placeholder-text">Educational Content</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <!-- Fallback content structure -->
+                <div class="content-section" id="text-content">
+                    <div class="content-wrapper">
+                        <div class="main-content">
+                            <h3>{{scene.title}}</h3>
+                            <p>{{scene.narration}}</p>
+                        </div>
+                        
+                        <!-- Default visual placeholder -->
+                        <div class="visual-elements">
+                            <div class="visual-placeholder">
+                                <div class="placeholder-icon">📊</div>
+                                <div class="placeholder-text">Educational Content</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 {% endif %}
             </section>
