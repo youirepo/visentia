@@ -80,24 +80,14 @@ export class SceneProcessor {
         const sceneFileName = `series-${seriesId}-episode-${episodeNumber}-scene-${scene.sceneNumber}-${timestamp}.py`;
         const sceneFilePath = path.join(process.cwd(), 'server', 'manim', sceneFileName);
         
-        // Extract class name and create full code
-        const classNameMatch = manimCode.match(/class\s+(\w+)\s*\(/);
-        const className = classNameMatch ? classNameMatch[1] : `Scene${scene.sceneNumber}`;
-        
-        const fullCode = `from manim import *
-import numpy as np
-
-${manimCode}
-
-if __name__ == "__main__":
-    scene = ${className}()
-    scene.render()
-`;
+        // The manimCode should already be complete with imports and class definition
+        // Just write it directly to file
+        fs.writeFileSync(sceneFilePath, manimCode);
         
         const manimFile = {
           fileName: sceneFileName,
           filePath: sceneFilePath,
-          fullCode
+          fullCode: manimCode
         };
         
         // STEP 5: Render the scene video with exact timing

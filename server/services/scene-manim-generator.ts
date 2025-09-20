@@ -145,7 +145,15 @@ CRITICAL: Text must be clearly visible with font_size=48 or larger!
 ALWAYS scale text to fit the frame width (90%) and height (85% if needed) using scale_to_fit_width/scale_to_fit_height immediately after creation.
 
 ${previousFeedback ? `PREVIOUS FEEDBACK TO ADDRESS:\n${previousFeedback}\n\n` : ''}
-Start your response with 'import' and end with the last line of Python code. Nothing else.`;
+
+CRITICAL OUTPUT FORMAT:
+Your response must be complete, executable Python code that includes:
+1. from manim import *
+2. class YourSceneName(Scene):
+3. def construct(self): with all animations
+4. Proper indentation and syntax
+
+Start your response with 'from manim import *' and end with the last line of Python code. Nothing else.`;
 
     const userPrompt = `Create a Manim scene for this specific educational video segment.
 
