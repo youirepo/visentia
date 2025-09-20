@@ -177,19 +177,20 @@ export class HybridVisualService {
     outputPath: string,
     duration: number
   ): Promise<string> {
-    console.log(`Capturing video from HTML: ${htmlPath}`);
+    console.log(`Generating video from HTML: ${htmlPath}`);
     
-    // Run Node.js script to capture video
-    const nodeCommand = `node "${this.nodeScriptPath}" "${htmlPath}" "${outputPath}" ${duration}`;
+    // Run Python script to generate video using FFmpeg
+    const pythonScriptPath = path.join(__dirname, 'simple-video-generator.py');
+    const pythonCommand = `python3 "${pythonScriptPath}" "${htmlPath}" "${outputPath}" ${duration}`;
     
-    console.log(`Running Node.js script: ${nodeCommand}`);
-    const { stdout, stderr } = await execAsync(nodeCommand);
+    console.log(`Running Python script: ${pythonCommand}`);
+    const { stdout, stderr } = await execAsync(pythonCommand);
     
     if (stderr) {
-      console.warn('Node.js script stderr:', stderr);
+      console.warn('Python script stderr:', stderr);
     }
     
-    console.log('Node.js script stdout:', stdout);
+    console.log('Python script stdout:', stdout);
     
     if (!fs.existsSync(outputPath)) {
       throw new Error(`Video file not generated: ${outputPath}`);
