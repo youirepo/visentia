@@ -5,6 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import type { Scene, SceneBasedScript } from './scene-generator.js';
 import { generateAudioFromScript } from './openai-tts.js';
+import { AnimatedVideoCapture } from './animated-video-capture.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -31,12 +32,12 @@ export interface MultiModeProcessingResult {
 export class MultiModeRenderer {
   private outputDir: string;
   private tempDir: string;
-  private pythonScriptPath: string;
+  private videoCapture: AnimatedVideoCapture;
 
   constructor() {
     this.outputDir = path.join(process.cwd(), 'server', 'generated-scenes');
     this.tempDir = path.join(process.cwd(), 'server', 'temp-stitching');
-    this.pythonScriptPath = path.join(__dirname, 'simple-video-generator.py');
+    this.videoCapture = new AnimatedVideoCapture();
     
     // Ensure directories exist
     if (!fs.existsSync(this.outputDir)) {
@@ -173,27 +174,18 @@ export class MultiModeRenderer {
   ): Promise<string> {
     console.log(`Rendering scene "${scene.title}" with Mermaid (diagram mode)...`);
     
-    // Create Mermaid diagram HTML
+    // Create Mermaid diagram HTML with animations
     const htmlContent = this.generateMermaidHtml(scene, duration);
     const htmlFileName = `scene-${scene.sceneNumber.toString().padStart(2, '0')}-${this.sanitizeFilename(scene.title)}.html`;
     const htmlPath = path.join(this.outputDir, htmlFileName);
     
     fs.writeFileSync(htmlPath, htmlContent);
     
-    // Generate video from HTML using our simple video generator
+    // Generate video from HTML using animated video capture
     const videoFileName = `scene-${scene.sceneNumber}-${timestamp}.mp4`;
     const videoPath = path.join(this.outputDir, videoFileName);
     
-    const command = `python3 "${this.pythonScriptPath}" "${htmlPath}" "${videoPath}" ${duration}`;
-    console.log(`Running Python script: ${command}`);
-    
-    const { stdout, stderr } = await execAsync(command);
-    
-    if (stderr) {
-      console.warn('Python script stderr:', stderr);
-    }
-    
-    console.log('Python script stdout:', stdout);
+    await this.videoCapture.captureVideoFromHTML(htmlPath, videoPath, duration);
     
     if (!fs.existsSync(videoPath)) {
       throw new Error(`Video file not generated: ${videoPath}`);
@@ -211,27 +203,18 @@ export class MultiModeRenderer {
   ): Promise<string> {
     console.log(`Rendering scene "${scene.title}" with HTML (html mode)...`);
     
-    // Create HTML content
+    // Create HTML content with animations
     const htmlContent = this.generateHtmlContent(scene, duration);
     const htmlFileName = `scene-${scene.sceneNumber.toString().padStart(2, '0')}-${this.sanitizeFilename(scene.title)}.html`;
     const htmlPath = path.join(this.outputDir, htmlFileName);
     
     fs.writeFileSync(htmlPath, htmlContent);
     
-    // Generate video from HTML using our simple video generator
+    // Generate video from HTML using animated video capture
     const videoFileName = `scene-${scene.sceneNumber}-${timestamp}.mp4`;
     const videoPath = path.join(this.outputDir, videoFileName);
     
-    const command = `python3 "${this.pythonScriptPath}" "${htmlPath}" "${videoPath}" ${duration}`;
-    console.log(`Running Python script: ${command}`);
-    
-    const { stdout, stderr } = await execAsync(command);
-    
-    if (stderr) {
-      console.warn('Python script stderr:', stderr);
-    }
-    
-    console.log('Python script stdout:', stdout);
+    await this.videoCapture.captureVideoFromHTML(htmlPath, videoPath, duration);
     
     if (!fs.existsSync(videoPath)) {
       throw new Error(`Video file not generated: ${videoPath}`);
@@ -263,6 +246,7 @@ export class MultiModeRenderer {
             justify-content: center;
             min-height: 100vh;
             color: white;
+            overflow: hidden;
         }
         .container {
             background: rgba(255, 255, 255, 0.1);
@@ -270,23 +254,29 @@ export class MultiModeRenderer {
             padding: 2rem;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: slideInUp 1s ease-out;
         }
         h1 {
             text-align: center;
             margin-bottom: 2rem;
             font-size: 2.5rem;
+            animation: fadeInScale 1.5s ease-out;
         }
         .mermaid {
             background: white;
             border-radius: 8px;
             padding: 1rem;
             margin: 1rem 0;
+            animation: fadeIn 2s ease-out 0.5s both;
+            transform: scale(0.8);
+            animation: scaleIn 2s ease-out 0.5s both;
         }
         .content {
             text-align: center;
             margin-top: 1rem;
             font-size: 1.2rem;
             line-height: 1.6;
+            animation: fadeInUp 2s ease-out 1s both;
         }
         .duration {
             position: absolute;
@@ -296,6 +286,67 @@ export class MultiModeRenderer {
             padding: 0.5rem 1rem;
             border-radius: 20px;
             font-size: 0.9rem;
+            animation: fadeIn 1s ease-out;
+        }
+        
+        /* Animations */
+        @keyframes slideInUp {
+            from {
+                transform: translateY(100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes fadeInScale {
+            from {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes scaleIn {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        /* Mermaid node animations */
+        .mermaid .node rect {
+            animation: pulse 2s ease-in-out infinite 2s;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
         }
     </style>
 </head>
@@ -318,11 +369,11 @@ export class MultiModeRenderer {
             securityLevel: 'loose'
         });
         
-        // Set scene ready flag
+        // Set scene ready flag after animations start
         window.addEventListener('load', function() {
             setTimeout(() => {
                 window.sceneReady = true;
-            }, 1000);
+            }, 2000); // Wait for initial animations to complete
         });
     </script>
 </body>
@@ -381,6 +432,7 @@ export class MultiModeRenderer {
             justify-content: center;
             min-height: 100vh;
             color: white;
+            overflow: hidden;
         }
         .container {
             background: rgba(255, 255, 255, 0.1);
@@ -390,16 +442,19 @@ export class MultiModeRenderer {
             border: 1px solid rgba(255, 255, 255, 0.2);
             text-align: center;
             max-width: 800px;
+            animation: slideInUp 1s ease-out;
         }
         h1 {
             font-size: 3rem;
             margin-bottom: 2rem;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            animation: fadeInScale 1.5s ease-out;
         }
         .content {
             font-size: 1.5rem;
             line-height: 1.8;
             margin-bottom: 2rem;
+            animation: fadeInUp 2s ease-out 0.5s both;
         }
         .visual-elements {
             background: rgba(255, 255, 255, 0.1);
@@ -407,6 +462,18 @@ export class MultiModeRenderer {
             padding: 1.5rem;
             margin: 1rem 0;
             border-left: 4px solid #3498db;
+            animation: slideInLeft 2s ease-out 1s both;
+            position: relative;
+        }
+        .visual-elements::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -4px;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(45deg, #3498db, #e74c3c, #f39c12, #27ae60);
+            animation: colorShift 3s ease-in-out infinite;
         }
         .duration {
             position: absolute;
@@ -416,6 +483,80 @@ export class MultiModeRenderer {
             padding: 0.5rem 1rem;
             border-radius: 20px;
             font-size: 0.9rem;
+            animation: fadeIn 1s ease-out;
+        }
+        
+        /* Animations */
+        @keyframes slideInUp {
+            from {
+                transform: translateY(100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes fadeInScale {
+            from {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideInLeft {
+            from {
+                transform: translateX(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes colorShift {
+            0% { background: #3498db; }
+            25% { background: #e74c3c; }
+            50% { background: #f39c12; }
+            75% { background: #27ae60; }
+            100% { background: #3498db; }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* Text animation */
+        .content {
+            animation: typewriter 3s steps(40) 0.5s both, blink 1s infinite 3.5s;
+        }
+        
+        @keyframes typewriter {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+        
+        @keyframes blink {
+            0%, 50% { border-right: 2px solid white; }
+            51%, 100% { border-right: none; }
         }
     </style>
 </head>
@@ -434,11 +575,11 @@ export class MultiModeRenderer {
     
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
     <script>
-        // Set scene ready flag
+        // Set scene ready flag after animations start
         window.addEventListener('load', function() {
             setTimeout(() => {
                 window.sceneReady = true;
-            }, 1000);
+            }, 2000); // Wait for initial animations to complete
         });
     </script>
 </body>
@@ -447,6 +588,12 @@ export class MultiModeRenderer {
 
   private sanitizeFilename(filename: string): string {
     return filename.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+  }
+
+  async cleanup() {
+    if (this.videoCapture) {
+      await this.videoCapture.close();
+    }
   }
 
   async stitchScenes(

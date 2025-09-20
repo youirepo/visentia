@@ -129,6 +129,9 @@ async function generateContentAsync(seriesId: number, request: VideoGenerationRe
 
     await storage.createEpisode(episodeData);
 
+    // Cleanup resources
+    await multiModeRenderer.cleanup();
+
     // Complete generation
     updateProgress(100, "Multi-mode scene rendering completed successfully!", 'completed');
     
