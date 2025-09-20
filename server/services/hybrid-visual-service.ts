@@ -154,7 +154,7 @@ export class HybridVisualService {
     console.log('Python script stdout:', stdout);
     
     // Expected HTML filename
-    const htmlFileName = `scene-${scene.sceneNumber:02d}-${this.sanitizeFilename(scene.title)}.html`;
+    const htmlFileName = `scene-${scene.sceneNumber.toString().padStart(2, '0')}-${this.sanitizeFilename(scene.title)}.html`;
     const htmlPath = path.join(this.outputDir, htmlFileName);
     
     if (!fs.existsSync(htmlPath)) {
