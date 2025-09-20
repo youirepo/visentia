@@ -26,8 +26,12 @@ export class AnimatedVideoCapture {
           '--disable-accelerated-2d-canvas',
           '--no-first-run',
           '--no-zygote',
-          '--disable-gpu'
-        ]
+          '--disable-gpu',
+          '--disable-web-security',
+          '--disable-features=VizDisplayCompositor',
+          '--single-process'
+        ],
+        timeout: 60000
       });
     }
   }
@@ -83,15 +87,48 @@ export class AnimatedVideoCapture {
 
     } catch (error) {
       console.error('Error capturing video:', error);
-      throw error;
+      // Fallback to simple video generation if Puppeteer fails
+      console.log('Falling back to simple video generation...');
+      return await this.fallbackVideoGeneration(htmlPath, outputPath, duration);
     } finally {
-      await page.close();
+      try {
+        await page.close();
+      } catch (closeError) {
+        console.warn('Error closing page:', closeError);
+      }
     }
+  }
+
+  async fallbackVideoGeneration(htmlPath, outputPath, duration) {
+    console.log('Using fallback video generation with FFmpeg...');
+    
+    // Use the simple video generator as fallback
+    const command = `python3 "${path.join(process.cwd(), 'server', 'services', 'simple-video-generator.py')}" "${htmlPath}" "${outputPath}" ${duration}`;
+    console.log(`Running fallback command: ${command}`);
+    
+    const { stdout, stderr } = await execAsync(command);
+    
+    if (stderr) {
+      console.warn('Fallback stderr:', stderr);
+    }
+    
+    console.log('Fallback stdout:', stdout);
+    
+    if (!fs.existsSync(outputPath)) {
+      throw new Error(`Fallback video generation failed: ${outputPath}`);
+    }
+    
+    console.log(`Fallback video generated successfully: ${outputPath}`);
+    return outputPath;
   }
 
   async close() {
     if (this.browser) {
-      await this.browser.close();
+      try {
+        await this.browser.close();
+      } catch (error) {
+        console.warn('Error closing browser:', error);
+      }
       this.browser = null;
     }
   }

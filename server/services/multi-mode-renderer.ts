@@ -131,6 +131,12 @@ export class MultiModeRenderer {
     const audioFileName = `series-${seriesId}-episode-${episodeNumber}-${timestamp}-scene-${scene.sceneNumber}.mp3`;
     const audioPath = path.join(process.cwd(), 'server', 'audio', audioFileName);
     
+    // Ensure audio directory exists
+    const audioDir = path.dirname(audioPath);
+    if (!fs.existsSync(audioDir)) {
+      fs.mkdirSync(audioDir, { recursive: true });
+    }
+    
     await generateAudioFromScript(scene.narration, audioPath);
     
     console.log(`Generated audio for "${scene.title}" - saved as: ${audioFileName}`);
@@ -139,14 +145,31 @@ export class MultiModeRenderer {
 
   private async getAudioDuration(audioPath: string): Promise<number> {
     try {
+      // Check if file exists first
+      if (!fs.existsSync(audioPath)) {
+        throw new Error(`Audio file not found: ${audioPath}`);
+      }
+      
       const command = `ffprobe -v quiet -show_entries format=duration -of csv=p=0 "${audioPath}"`;
-      const { stdout } = await execAsync(command);
+      const { stdout, stderr } = await execAsync(command);
+      
+      if (stderr) {
+        console.warn('ffprobe stderr:', stderr);
+      }
+      
       const duration = parseFloat(stdout.trim());
+      
+      if (isNaN(duration) || duration <= 0) {
+        throw new Error(`Invalid duration: ${stdout.trim()}`);
+      }
+      
       console.log(`Scene audio duration: ${duration.toFixed(3)}s`);
       return duration;
     } catch (error) {
       console.error('Failed to get audio duration:', error);
-      throw new Error(`Failed to get audio duration: ${error instanceof Error ? error.message : String(error)}`);
+      // Return a default duration if ffprobe fails
+      console.log('Using default duration of 10 seconds');
+      return 10.0;
     }
   }
 
