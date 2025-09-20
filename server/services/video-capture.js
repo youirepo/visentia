@@ -32,7 +32,13 @@ class VideoCaptureService {
 
     async initialize() {
         if (!this.browser) {
-            this.browser = await puppeteer.launch(this.defaultOptions);
+            try {
+                this.browser = await puppeteer.launch(this.defaultOptions);
+                console.log('Browser initialized successfully');
+            } catch (error) {
+                console.error('Failed to initialize browser:', error);
+                throw error;
+            }
         }
         return this.browser;
     }
@@ -129,7 +135,13 @@ class VideoCaptureService {
             console.error('Video capture failed:', error);
             throw error;
         } finally {
-            await page.close();
+            try {
+                await page.close();
+                await browser.close();
+                this.browser = null;
+            } catch (closeError) {
+                console.error('Error closing browser:', closeError);
+            }
         }
     }
 
