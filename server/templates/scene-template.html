@@ -344,7 +344,9 @@
             // Initialize graphs if present
             {% if scene.graph_content %}
             {% for graph in scene.graph_content %}
+            {% if graph.config %}
             initializeGraph({{loop.index}}, {{graph.config | tojson}});
+            {% endif %}
             {% endfor %}
             {% endif %}
             
