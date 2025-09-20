@@ -1,6 +1,6 @@
 // import { generateEducationalSeries } from "./educationalDemo.js";
 import { generateSceneBasedScript } from "./scene-generator.js";
-import { HybridVisualService } from "./hybrid-visual-service.js";
+import { MultiModeRenderer } from "./multi-mode-renderer.js";
 import { generateUniqueTitle } from "./title-generator.js";
 import { storage } from "../storage.js";
 import { optimizeScript } from "./script-optimizer.js";
@@ -75,9 +75,9 @@ async function generateContentAsync(seriesId: number, request: VideoGenerationRe
     
     updateProgress(progressStep, `Processing ${sceneScript.scenes.length} scenes: ${episodeTitle}...`);
 
-    // Process all scenes using hybrid visual system
-    const hybridProcessor = new HybridVisualService();
-    const processedScenes = await hybridProcessor.processScenes(
+    // Process all scenes using multi-mode rendering system
+    const multiModeRenderer = new MultiModeRenderer();
+    const processedScenes = await multiModeRenderer.processScenes(
       sceneScript,
       seriesId,
       1
@@ -85,8 +85,14 @@ async function generateContentAsync(seriesId: number, request: VideoGenerationRe
     
     updateProgress(progressStep + 40, "Stitching scenes together...");
     
+    // Check if all scenes were successful before stitching
+    if (!processedScenes.allSuccessful) {
+      const failedScenes = processedScenes.scenes.filter(scene => !scene.success);
+      throw new Error(`Cannot stitch scenes: ${failedScenes.length} scenes failed to render. Failed scenes: ${failedScenes.map(s => s.title).join(', ')}`);
+    }
+    
     // Stitch all scenes together
-    const finalVideoPath = await hybridProcessor.stitchScenes(
+    const finalVideoPath = await multiModeRenderer.stitchScenes(
       processedScenes.scenes,
       seriesId,
       1
@@ -124,7 +130,7 @@ async function generateContentAsync(seriesId: number, request: VideoGenerationRe
     await storage.createEpisode(episodeData);
 
     // Complete generation
-    updateProgress(100, "Scene-based video generation completed successfully!", 'completed');
+    updateProgress(100, "Multi-mode scene rendering completed successfully!", 'completed');
     
   } catch (error) {
     console.error(`Educational content generation failed for series ${seriesId}:`, error);

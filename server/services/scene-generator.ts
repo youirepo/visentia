@@ -8,6 +8,7 @@ export interface Scene {
   duration: number; // in seconds
   visualElements: string[];
   animationType: string;
+  mode: 'math' | 'diagram' | 'html'; // Rendering mode
 }
 
 export interface SceneBasedScript {
@@ -40,6 +41,10 @@ Each scene should include:
 4. Duration in seconds (15-45)
 5. Visual elements (specific shapes, diagrams, animations)
 6. Animation type (Create, Transform, MoveAlongPath, etc.)
+7. Mode: Choose the appropriate rendering mode:
+   - "math": For advanced mathematical concepts requiring Manim animations
+   - "diagram": For flowcharts, process diagrams, or visual representations
+   - "html": For styled text, formulas, or simple visual content
 
 VISUAL FOCUS:
 - Prioritize diagrams, charts, graphs, and geometric shapes
@@ -71,7 +76,8 @@ Return JSON in this exact format:
       "narration": "Exact text to be narrated (15-45 seconds when spoken)",
       "duration": 30,
       "visualElements": ["Circle", "Arrow", "Mathematical graph"],
-      "animationType": "Create"
+      "animationType": "Create",
+      "mode": "math"
     }
   ]
 }`;
