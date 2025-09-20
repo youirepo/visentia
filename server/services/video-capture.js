@@ -96,7 +96,7 @@ class VideoCaptureService {
             try {
                 console.log(`Capturing scene ${scene.sceneNumber}: ${scene.title}`);
                 
-                const outputPath = path.join(outputDir, `scene-${scene.sceneNumber:02d}-${this.sanitizeFilename(scene.title)}.mp4`);
+                const outputPath = path.join(outputDir, `scene-${scene.sceneNumber.toString().padStart(2, '0')}-${this.sanitizeFilename(scene.title)}.mp4`);
                 
                 const result = await this.captureScene(
                     scene.htmlPath,
