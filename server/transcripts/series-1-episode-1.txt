@@ -1,9 +1,0 @@
-Introduction to Fractions: A fraction represents a part of a whole. Let's imagine a whole as a full circle.
-
-Fraction Components: The top number is called the numerator. It shows how many parts we have. The bottom number is the denominator. It shows how many equal parts the whole is divided into.
-
-Understanding Numerator: If we shade in 2 parts of our 4-part circle, the numerator is 2 because we have 2 shaded parts.
-
-Understanding Denominator: No matter how many parts are shaded, the denominator stays 4 because the circle is always divided into 4 parts.
-
-Fraction Representation: So, when we have a circle divided into 4 equal parts and 2 of them are shaded, we say we have two-fourths, or 2/4 of the whole circle.
