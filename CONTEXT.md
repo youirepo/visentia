@@ -4,13 +4,13 @@
 
 The Tutor's own understanding is the system's optimization target. The system improves Student outcomes *indirectly*, by helping the Tutor teach better — not by interacting with Students directly.
 
-**Curriculum scope (MVP):** Australian Year 7–10 mathematics — algebra (linear and basic quadratics), number (fractions, decimals, percentages, indices), geometry (Pythagoras, congruence, similar triangles, basic 3D), measurement, basic trigonometry (SOHCAHTOA, intro unit circle), probability, statistics, and coordinate geometry. Content beyond this level is explicitly out of scope until the MVP works well within it.
+**Curriculum scope (MVP):** NSW NESA Year 7–10 mathematics (Stage 4: Years 7–8; Stage 5: Years 9–10) — algebra (linear and basic quadratics), number (fractions, decimals, percentages, indices), geometry (Pythagoras, congruence, similar triangles, basic 3D), measurement, basic trigonometry (SOHCAHTOA, intro unit circle), probability, statistics, and coordinate geometry. Content beyond this level is explicitly out of scope until the MVP works well within it.
 
 **Build phasing:**
 - **v0.1**: CLI + minimal localhost web UI. Engine is the priority — LLM → Manim Python → rendered MP4 with synchronized voiceover. Hybrid codegen (scene-template library first, free-form Manim fallback later).
 - **v0.2**: Electron desktop shell wrapping the v0.1 engine. Add Interactive Parametric Diagrams and Visual Answer Cards as supplementary artifact forms.
 
-**Tech stack (v0.1):** all free. LLM = Google AI Studio's Gemini 2.5 Flash (with Claude Sonnet 4.5 as the documented upgrade path). TTS = `edge-tts` (Microsoft neural voices via Python package; no key, no quota). Rendering = Manim (open source). The provider-swapping abstraction is treated as a first-class concern from day one.
+**Tech stack (v0.1):** all free. LLM = Google AI Studio's Gemini 3 Flash Preview (`gemini-3-flash-preview`), with Gemini 2.5 Flash GA and Claude Sonnet 4.5 as documented upgrade paths if the preview model is deprecated or behaves unstably. TTS = `edge-tts` (Microsoft neural voices via Python package; no key, no quota). Rendering = Manim (open source). The provider-swapping abstraction is treated as a first-class concern from day one — `gemini-3-flash-preview` is by definition a preview model and will change.
 
 ## Language
 

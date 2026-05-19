@@ -9,7 +9,7 @@ This is the **seed** eval set. Add new entries as new prompts emerge from real s
 ```yaml
 id: unique short identifier (EV-NNN)
 date_captured: when this came up in a real session (approximate)
-year_level: Australian year level
+year_level: NSW NESA year level (Stage 4 = Years 7–8, Stage 5 = Years 9–10)
 prompt: the actual ask, as the Tutor would type it
 math_content_type: Relationship | Procedure | Derivation
 expected_artifact_form: Video | Interactive | Visual Answer Card

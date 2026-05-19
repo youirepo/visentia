@@ -1,11 +1,11 @@
-# Feasibility probe — Gemini 2.5 Flash + Manim
+# Feasibility probe — Gemini 3 Flash Preview + Manim
 
 **Date:** 2026-05-19
-**Question being answered:** Can Gemini 2.5 Flash produce Manim Community Edition code that renders and grades ≥5/10 on the three seed eval prompts in `docs/evals/seed.md`?
+**Question being answered:** Can Gemini 3 Flash Preview produce Manim Community Edition code that renders and grades ≥5/10 on the three seed eval prompts in `docs/evals/seed.md`?
 
 **Setup:**
 - LLM: `gemini-3-flash-preview` via [aistudio.google.com](https://aistudio.google.com), temperature 1 (AI Studio's recommended default)
-- System prompt: "expert in Manim Community Edition, output one Python file, target Australian Year 8, 30–60s aim, mathematically correct, no commentary"
+- System prompt: "expert in Manim Community Edition, output one Python file, target NSW NESA Year 8 (Stage 4), 30–60s aim, mathematically correct, no commentary" *(verbatim of the system prompt actually used during the probe; targeting language reflects the project's NESA NSW scope.)*
 - Renderer: Manim Community Edition v0.19.0 (local, macOS, `-ql` low-quality preview)
 - Note: at temperature 1 there's meaningful run-to-run variability. EV-001 needed 3 fixes; EV-002 needed 0. For the production pipeline we'd test lower temperatures (0.0–0.4) for codegen reliability — but at this probe stage we're testing capability, not config-tuning.
 - Note: `gemini-3-flash-preview` is a preview model. Production should plan a fallback to a stable model (Gemini 2.5 Flash GA, or Claude Sonnet 4.5 as the documented upgrade path) in case the preview shifts behaviour or is deprecated.
