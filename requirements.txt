@@ -1,0 +1,4 @@
+# Visentia v0.1 runtime dependencies.
+# Manim is pinned exactly because the StaticLinter's Manim CE API model (added in slice #7)
+# must stay in sync with the rendering engine. Bumping Manim requires regenerating that model.
+manim==0.19.0

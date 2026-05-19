@@ -4,5 +4,19 @@
 __pycache__/
 *.pyc
 
+# Python packaging build artefacts
+build/
+dist/
+*.egg-info/
+
+# Python test/tool caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Virtual environments
+.venv/
+
 # Manim render outputs (regeneratable from source)
 media/
+videos/
