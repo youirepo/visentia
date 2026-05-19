@@ -1,1 +1,8 @@
 .env
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# Manim render outputs (regeneratable from source)
+media/
