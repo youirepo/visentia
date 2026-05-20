@@ -1,9 +1,9 @@
 """ContentClassifier: routes a Prompt into a Math Content Type + suggested artifact form.
 
-In v0.1 the classifier returns one of three Math Content Types (Relationship / Procedure
-/ Derivation) and one of two Modes (Quick / Deep). The `suggested_template_id` field is
-always `None` in this slice because no curriculum templates exist yet — every Prompt
-takes the freeform path. Templates land in slice #6 (Triangle3Side) and #10–#13.
+The classifier returns one of three Math Content Types (Relationship / Procedure /
+Derivation), one of two Modes (Quick / Deep), and an optional `suggested_template_id`
+when a registered curriculum template fits the Prompt. Slice #6 introduced
+`Triangle3Side` for the converse of Pythagoras / classifying triangles from side lengths.
 
 The classifier asks Gemini for structured JSON via `response_schema`, so output shape is
 constrained by the provider when supported.
@@ -29,9 +29,8 @@ Mode = Literal["Quick", "Deep"]
 class Classification:
     """Classifier output for one Prompt.
 
-    `suggested_template_id` is `None` in v0.1 slice #4 (no templates registered yet).
-    Slice #6 introduces `Triangle3Side`; from that point onward the classifier sets
-    `suggested_template_id` when it matches.
+    `suggested_template_id` is `None` when no template matches; otherwise the template id
+    string (e.g. `"Triangle3Side"`).
     """
 
     math_content_type: MathContentType
@@ -62,6 +61,14 @@ Also pick a Mode:
 - "Quick": short refresher / top-up artifact.
 - "Deep": longer, thorough relearning.
 
+If the Prompt matches a registered template, set `suggested_template_id` to that id;
+otherwise use "none".
+
+Registered templates:
+
+- "Triangle3Side": classifying a triangle as acute, right, or obtuse from three given
+  side lengths; converse of Pythagoras; comparing c² with a²+b² where c is the longest.
+
 Return JSON only. Do not include commentary, markdown, or backticks."""
 
 
@@ -76,8 +83,12 @@ _CLASSIFICATION_SCHEMA: dict = {
             "type": "STRING",
             "enum": ["Quick", "Deep"],
         },
+        "suggested_template_id": {
+            "type": "STRING",
+            "enum": ["Triangle3Side", "none"],
+        },
     },
-    "required": ["math_content_type", "suggested_mode"],
+    "required": ["math_content_type", "suggested_mode", "suggested_template_id"],
 }
 
 
@@ -113,6 +124,7 @@ class ContentClassifier:
         try:
             math_content_type = data["math_content_type"]
             suggested_mode = data["suggested_mode"]
+            raw_template = data["suggested_template_id"]
         except KeyError as exc:
             raise ClassifierError(
                 f"Classifier reply missing required field: {exc}. Raw reply: {data!r}"
@@ -126,9 +138,15 @@ class ContentClassifier:
             raise ClassifierError(
                 f"Classifier returned invalid Mode: {suggested_mode!r}"
             )
+        if raw_template not in ("Triangle3Side", "none"):
+            raise ClassifierError(
+                f"Classifier returned invalid template id: {raw_template!r}"
+            )
+
+        suggested_template_id = None if raw_template == "none" else raw_template
 
         return Classification(
             math_content_type=math_content_type,
-            suggested_template_id=None,
+            suggested_template_id=suggested_template_id,
             suggested_mode=suggested_mode,
         )

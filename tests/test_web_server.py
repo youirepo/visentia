@@ -28,7 +28,11 @@ class _FakeProvider(LLMProvider):
     ) -> str:
         del messages, system, temperature, response_schema
         return json.dumps(
-            {"math_content_type": "Relationship", "suggested_mode": "Quick"}
+            {
+                "math_content_type": "Relationship",
+                "suggested_mode": "Quick",
+                "suggested_template_id": "none",
+            }
         )
 
 

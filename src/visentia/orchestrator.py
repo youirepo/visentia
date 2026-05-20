@@ -1,15 +1,8 @@
 """RepairOrchestrator: the pipeline policy module.
 
-This slice (#4) adds the LLM tier:
-  - `ContentClassifier` (via an injected `LLMProvider`) classifies the Prompt into a
-    Math Content Type + suggested Mode.
-  - The classification is logged on every call and written to a sidecar JSON next to
-    the MP4.
-  - Render still uses the placeholder `SpineScene` — template path lands in slice #6,
-    freeform path in #7, full repair loop in #8.
-
-The `generate_video(prompt, max_attempts) -> GenerateResult` contract is unchanged from
-the PRD. Subsequent slices replace internals, not the signature.
+Routes each Prompt through classification, then either a curriculum template (when the
+classifier suggests one and params fill successfully) or the placeholder spine until the
+freeform path lands in slice #7.
 """
 
 from __future__ import annotations
@@ -26,22 +19,23 @@ from visentia.llm import LLMError, LLMProvider, MissingApiKeyError
 from visentia.llm.gemini import Gemini
 from visentia.results import Failure, GenerateResult, Mp4
 from visentia.scenes.spine import SpineScene
+from visentia.templates import FillError, ParamFiller, TemplateLibrary
 from visentia.voiceover import VoiceoverSynthesizer
 
 logger = logging.getLogger(__name__)
 
 
 class RepairOrchestrator:
-    """Stub-evolving implementation of the v0.1 pipeline.
+    """v0.1 pipeline: classify → template render (if matched) else placeholder spine."""
 
-    Subsequent slices replace the body:
-      - #6: template path routes to a curriculum template
-      - #7: freeform path with static lint + sandboxed render
-      - #8: repair loop with bounded retries and template fallback
-    """
-
-    def __init__(self, provider: LLMProvider | None = None) -> None:
+    def __init__(
+        self,
+        provider: LLMProvider | None = None,
+        *,
+        template_library: TemplateLibrary | None = None,
+    ) -> None:
         self._provider = provider
+        self._template_library = template_library or TemplateLibrary()
 
     @property
     def provider(self) -> LLMProvider:
@@ -90,17 +84,27 @@ class RepairOrchestrator:
             classification.suggested_template_id,
         )
 
+        path_taken = "spine-stub"
+        template_params: dict | None = None
+
         try:
-            mp4_path = _render_spine_scene(target_dir)
+            if classification.suggested_template_id:
+                mp4_path, path_taken, template_params = self._render_template(
+                    prompt,
+                    classification,
+                    target_dir,
+                )
+            else:
+                mp4_path = _render_spine_scene(target_dir)
         except Exception as exc:
             return Failure(
-                message="Visentia couldn't render the placeholder video. Check that Manim is installed correctly.",
+                message="Visentia couldn't render the Explainer Artifact. Check that Manim is installed correctly.",
                 attempts_made=1,
                 last_error=str(exc),
             )
 
         metadata = {
-            "path_taken": "spine-stub",
+            "path_taken": path_taken,
             "renderer": "manim",
             "manim_quality": manim_config.quality,
             "voice": VoiceoverSynthesizer.DEFAULT_VOICE,
@@ -114,11 +118,32 @@ class RepairOrchestrator:
             },
             "prompt": prompt,
         }
+        if template_params is not None:
+            metadata["template_params"] = template_params
 
         sidecar_path = _write_metadata_sidecar(mp4_path, metadata)
         logger.info("Visentia sidecar metadata written to %s", sidecar_path)
 
         return Mp4(path=mp4_path, metadata=metadata)
+
+    def _render_template(
+        self,
+        prompt: str,
+        classification: Classification,
+        output_dir: Path,
+    ) -> tuple[Path, str, dict]:
+        template_id = classification.suggested_template_id
+        assert template_id is not None
+
+        spec = self._template_library.get(template_id)
+        filler = ParamFiller(self.provider)
+        fill_result = filler.fill(prompt, spec)
+
+        if isinstance(fill_result, FillError):
+            raise RuntimeError(fill_result.message + (f" ({fill_result.last_error})" if fill_result.last_error else ""))
+
+        mp4_path = self._template_library.render(template_id, fill_result, output_dir)
+        return mp4_path, f"template:{template_id}", fill_result
 
 
 def _render_spine_scene(output_dir: Path) -> Path:

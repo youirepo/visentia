@@ -4,7 +4,7 @@ Visentia helps a Tutor understand a math concept well enough to teach it. Type a
 
 Curriculum scope (MVP): NSW NESA Year 7–10 mathematics (Stage 4 + Stage 5).
 
-> This is **v0.1 in flight**. The current spine slice (issue [#2](https://github.com/youirepo/visentia/issues/2)) renders a placeholder Scene regardless of the Prompt. Real classifier-driven template renders land in subsequent slices.
+> This is **v0.1 in flight**. Converse-of-Pythagoras prompts route to the **Triangle3Side** curriculum template (issue [#6](https://github.com/youirepo/visentia/issues/6)); other prompts still use the placeholder spine until more templates land.
 
 ## Quick start: install + run
 
