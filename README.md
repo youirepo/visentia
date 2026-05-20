@@ -23,13 +23,21 @@ source .venv/bin/activate
 pip install -e ".[dev]"
 ```
 
+Configure your API key. Get a free Gemini API key at [Google AI Studio](https://aistudio.google.com/app/apikey), then put it in a `.env` at the project root:
+
+```bash
+echo "GOOGLE_API_KEY=your-key-here" >> .env
+```
+
+(The CLI auto-loads `.env` on startup via `python-dotenv`. `GEMINI_API_KEY` and `GOOGLE_AI_STUDIO_API_KEY` are recognized aliases.)
+
 Run:
 
 ```bash
 visentia "If you have a triangle not to scale with the 3 sides given, how to know if it is right angle or acute or obtuse?"
 ```
 
-The MP4 is written under `./videos/` by default. Use `--output-dir DIR` to override.
+The MP4 is written under `./videos/` by default. Use `--output-dir DIR` to override. A sidecar `<mp4>.json` next to the video records the active LLM provider, the classification result, the voice used, and the original prompt.
 
 Tests:
 

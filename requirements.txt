@@ -8,6 +8,11 @@ manim==0.19.0
 manim-voiceover==0.3.7
 edge-tts==7.2.8
 
+# LLM tier (slice #4). google-genai is the modern Gemini SDK (not the deprecated
+# `google-generativeai`). python-dotenv lets the CLI auto-load API keys from .env.
+google-genai==2.4.0
+python-dotenv==0.21.1
+
 # setuptools<80 is a workaround: manim-voiceover 0.3.7 imports `pkg_resources` at module
 # load time, and setuptools 80 (released 2025) removed it. Drop this pin when
 # manim-voiceover ships a fix.

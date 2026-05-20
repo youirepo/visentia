@@ -1,23 +1,49 @@
-"""Smoke tests for the spine slice (#2, extended in slice #3 with voiceover).
+"""Smoke tests for the spine + voiceover + LLM tier.
 
-These tests verify the architectural skeleton connects end-to-end:
-- `RepairOrchestrator.generate_video` returns an `Mp4` pointing at a non-zero-byte file
-  whose MP4 contains an audio track (voiceover via edge-tts).
-- The console script wires up correctly (verified via `--help`, which doesn't render).
+Coverage by slice:
+- #2 (spine):      orchestrator returns a non-zero MP4
+- #3 (voiceover):  the MP4 contains an aac audio stream and the voice is Australian
+- #4 (LLM tier):   orchestrator classifies the prompt and writes a sidecar JSON
 
-Subsequent slices add behaviour-specific tests against their own contracts.
+The orchestrator tests inject a `_FakeProvider` to keep them fast and offline.
+The CLI subprocess test is skipped unless `GOOGLE_API_KEY` / `GEMINI_API_KEY` is set,
+because the CLI's real path constructs a real `Gemini` provider end-to-end.
 """
 
 from __future__ import annotations
 
+import json
+import os
 import subprocess
 import sys
 from pathlib import Path
 
 import pytest
 
-from visentia.orchestrator import RepairOrchestrator
+from visentia.llm.base import CODEGEN_TEMPERATURE, LLMProvider, Message
+from visentia.llm.gemini import API_KEY_ENV_VARS
+from visentia.orchestrator import RepairOrchestrator, sidecar_path_for
 from visentia.results import Mp4
+
+
+class _FakeProvider(LLMProvider):
+    """Deterministic fake — always returns a Relationship classification."""
+
+    name = "fake"
+    model = "fake-model"
+
+    def complete(
+        self,
+        messages: list[Message],
+        *,
+        system: str | None = None,
+        temperature: float = CODEGEN_TEMPERATURE,
+        response_schema: dict | None = None,
+    ) -> str:
+        del messages, system, temperature, response_schema
+        return json.dumps(
+            {"math_content_type": "Relationship", "suggested_mode": "Deep"}
+        )
 
 
 def _mp4_has_audio_stream(mp4_path: Path) -> bool:
@@ -44,14 +70,19 @@ def _mp4_has_audio_stream(mp4_path: Path) -> bool:
 
 
 @pytest.mark.slow
-def test_orchestrator_produces_nonzero_mp4_with_audio(tmp_path: Path) -> None:
-    """The stub orchestrator renders the placeholder Scene with voiceover.
+def test_orchestrator_produces_mp4_with_audio_and_sidecar(tmp_path: Path) -> None:
+    """Full orchestrator run with a fake provider.
 
-    Marked `slow`: on first invocation `edge-tts` makes a network call to Microsoft's
-    read-aloud endpoint to synthesize the placeholder narration (cached on subsequent runs).
+    Asserts:
+      - MP4 exists, non-zero bytes, has an audio stream (slice #3 contract)
+      - Sidecar JSON exists alongside the MP4 with classification + provider metadata
+        (slice #4 contract)
+
+    Marked `slow`: edge-tts hits the network on first invocation per unique narration
+    line (cached on subsequent runs under media/voiceovers/).
     """
 
-    orchestrator = RepairOrchestrator()
+    orchestrator = RepairOrchestrator(provider=_FakeProvider())
     result = orchestrator.generate_video("any prompt", output_dir=tmp_path)
 
     assert isinstance(result, Mp4), f"expected Mp4, got {type(result).__name__}"
@@ -62,9 +93,21 @@ def test_orchestrator_produces_nonzero_mp4_with_audio(tmp_path: Path) -> None:
     assert result.metadata["voice"].startswith("en-AU-"), (
         f"voice must be Australian English, got {result.metadata['voice']!r}"
     )
+    assert result.metadata["llm_provider"] == "fake"
+    assert result.metadata["llm_model"] == "fake-model"
+    assert result.metadata["classification"]["math_content_type"] == "Relationship"
+    assert result.metadata["classification"]["suggested_template_id"] is None
+    assert result.metadata["classification"]["suggested_mode"] == "Deep"
     assert _mp4_has_audio_stream(result.path), (
         f"MP4 at {result.path} has no audio stream — voiceover did not bake in"
     )
+
+    sidecar = sidecar_path_for(result.path)
+    assert sidecar.exists(), f"sidecar JSON missing at {sidecar}"
+    sidecar_data = json.loads(sidecar.read_text())
+    assert sidecar_data["llm_provider"] == "fake"
+    assert sidecar_data["classification"]["math_content_type"] == "Relationship"
+    assert sidecar_data["prompt"] == "any prompt"
 
 
 def test_cli_help_works() -> None:
@@ -83,11 +126,15 @@ def test_cli_help_works() -> None:
 
 
 @pytest.mark.slow
-def test_cli_end_to_end_produces_mp4_with_audio(tmp_path: Path) -> None:
-    """`visentia "<prompt>"` produces an MP4 with an audio track and exits 0.
+@pytest.mark.skipif(
+    not any(os.environ.get(v) for v in API_KEY_ENV_VARS),
+    reason=f"requires a real Google API key in one of {API_KEY_ENV_VARS}",
+)
+def test_cli_end_to_end_with_real_gemini(tmp_path: Path) -> None:
+    """`visentia "<prompt>"` produces an MP4 + sidecar JSON via the real Gemini provider.
 
-    Marked `slow` because it invokes Manim end-to-end with edge-tts narration. First-run
-    cost includes a network call for TTS; subsequent runs hit the manim-voiceover cache.
+    Skipped automatically without an API key. With a key set, this is the strongest
+    "everything works" smoke we have until the eval harness lands in slice #9.
     """
 
     result = subprocess.run(
@@ -107,4 +154,14 @@ def test_cli_end_to_end_produces_mp4_with_audio(tmp_path: Path) -> None:
     assert final_mp4.stat().st_size > 0, f"MP4 at {final_mp4} is zero bytes"
     assert _mp4_has_audio_stream(final_mp4), (
         f"CLI-produced MP4 at {final_mp4} has no audio stream"
+    )
+
+    sidecar = sidecar_path_for(final_mp4)
+    assert sidecar.exists(), f"sidecar JSON missing at {sidecar}"
+    sidecar_data = json.loads(sidecar.read_text())
+    assert sidecar_data["llm_provider"] == "gemini"
+    assert sidecar_data["classification"]["math_content_type"] in (
+        "Relationship",
+        "Procedure",
+        "Derivation",
     )
