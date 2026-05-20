@@ -16,6 +16,7 @@ from manim import (
     RIGHT,
     TEAL,
     UP,
+    WHITE,
     YELLOW,
     Create,
     FadeIn,
