@@ -12,6 +12,8 @@ dependencies = [
     "edge-tts==7.2.8",
     "google-genai==2.4.0",
     "python-dotenv==0.21.1",
+    "fastapi==0.115.12",
+    "uvicorn[standard]==0.34.2",
     # Workaround: manim-voiceover 0.3.7 imports `pkg_resources` (removed in setuptools 80).
     "setuptools<80",
 ]
@@ -30,6 +32,9 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+visentia = ["web_static/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

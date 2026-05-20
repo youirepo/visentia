@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Visentia</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #0f1419;
+        --panel: #1a2332;
+        --text: #e7ecf3;
+        --muted: #9aa7b8;
+        --accent: #5b9fd4;
+        --error: #e57373;
+        --ok: #81c784;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: system-ui, -apple-system, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.5;
+      }
+      main {
+        max-width: 52rem;
+        margin: 0 auto;
+        padding: 2rem 1.25rem 4rem;
+      }
+      h1 { font-size: 1.5rem; font-weight: 600; margin: 0 0 0.25rem; }
+      .subtitle { color: var(--muted); margin: 0 0 1.5rem; font-size: 0.95rem; }
+      label { display: block; font-weight: 500; margin-bottom: 0.5rem; }
+      textarea {
+        width: 100%;
+        min-height: 7rem;
+        padding: 0.75rem;
+        border: 1px solid #334155;
+        border-radius: 8px;
+        background: var(--panel);
+        color: var(--text);
+        font: inherit;
+        resize: vertical;
+      }
+      button {
+        margin-top: 0.75rem;
+        padding: 0.6rem 1.25rem;
+        border: none;
+        border-radius: 8px;
+        background: var(--accent);
+        color: #0b1220;
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      button:disabled { opacity: 0.5; cursor: not-allowed; }
+      #status {
+        margin-top: 1.25rem;
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        background: var(--panel);
+        display: none;
+      }
+      #status.visible { display: block; }
+      #status.running { border-left: 3px solid var(--accent); }
+      #status.done { border-left: 3px solid var(--ok); }
+      #status.failed { border-left: 3px solid var(--error); }
+      #status-message { font-weight: 500; }
+      #status-detail { color: var(--muted); font-size: 0.9rem; margin-top: 0.25rem; }
+      #result { margin-top: 1.5rem; display: none; }
+      #result.visible { display: block; }
+      video {
+        width: 100%;
+        border-radius: 8px;
+        background: #000;
+      }
+      #metadata {
+        margin-top: 1rem;
+        padding: 1rem;
+        border-radius: 8px;
+        background: var(--panel);
+        font-size: 0.9rem;
+      }
+      #metadata dt { color: var(--muted); margin-top: 0.5rem; }
+      #metadata dt:first-child { margin-top: 0; }
+      #metadata dd { margin: 0.15rem 0 0; font-family: ui-monospace, monospace; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Visentia</h1>
+      <p class="subtitle">
+        NSW NESA Year 7–10 math explainers. Enter a Prompt; get a narrated Manim video.
+      </p>
+
+      <form id="prompt-form">
+        <label for="prompt">Prompt</label>
+        <textarea
+          id="prompt"
+          name="prompt"
+          placeholder="e.g. If you have a triangle not to scale with the 3 sides given, how to know if it is right angle or acute or obtuse?"
+          required
+        ></textarea>
+        <button type="submit" id="submit-btn">Generate Explainer Artifact</button>
+      </form>
+
+      <div id="status" role="status" aria-live="polite">
+        <div id="status-message"></div>
+        <div id="status-detail"></div>
+      </div>
+
+      <section id="result">
+        <video id="player" controls playsinline></video>
+        <dl id="metadata"></dl>
+      </section>
+    </main>
+
+    <script>
+      const form = document.getElementById("prompt-form");
+      const promptEl = document.getElementById("prompt");
+      const submitBtn = document.getElementById("submit-btn");
+      const statusEl = document.getElementById("status");
+      const statusMessage = document.getElementById("status-message");
+      const statusDetail = document.getElementById("status-detail");
+      const resultEl = document.getElementById("result");
+      const player = document.getElementById("player");
+      const metadataEl = document.getElementById("metadata");
+
+      let pollTimer = null;
+
+      function showStatus(state, message, detail = "") {
+        statusEl.className = `visible ${state}`;
+        statusMessage.textContent = message;
+        statusDetail.textContent = detail;
+      }
+
+      function hideResult() {
+        resultEl.classList.remove("visible");
+        player.removeAttribute("src");
+        metadataEl.innerHTML = "";
+      }
+
+      function renderMetadata(meta) {
+        const classification = meta.classification || {};
+        const rows = [
+          ["Path taken", meta.path_taken],
+          ["Math content type", classification.math_content_type],
+          ["Mode", classification.suggested_mode],
+          ["Template", classification.suggested_template_id ?? "(none — freeform)"],
+          ["LLM", `${meta.llm_provider} / ${meta.llm_model}`],
+          ["Voice", meta.voice],
+          ["TTS", meta.tts],
+        ];
+        metadataEl.innerHTML = rows
+          .map(([k, v]) => `<dt>${k}</dt><dd>${v ?? "—"}</dd>`)
+          .join("");
+      }
+
+      async function pollJob(jobId) {
+        const res = await fetch(`/api/jobs/${jobId}`);
+        if (!res.ok) throw new Error("Failed to fetch job status");
+        const job = await res.json();
+
+        if (job.status === "pending" || job.status === "running") {
+          showStatus("running", job.message, job.detail || "This may take a minute…");
+          return false;
+        }
+
+        if (job.status === "failed") {
+          showStatus("failed", job.message, job.detail || "");
+          submitBtn.disabled = false;
+          return true;
+        }
+
+        if (job.status === "done") {
+          showStatus("done", "Explainer Artifact ready", "");
+          player.src = job.video_url;
+          renderMetadata(job.metadata || {});
+          resultEl.classList.add("visible");
+          submitBtn.disabled = false;
+          return true;
+        }
+
+        return false;
+      }
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const prompt = promptEl.value.trim();
+        if (!prompt) return;
+
+        if (pollTimer) clearInterval(pollTimer);
+        hideResult();
+        submitBtn.disabled = true;
+        showStatus("running", "Starting…", "");
+
+        try {
+          const res = await fetch("/api/generate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ prompt }),
+          });
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.detail || res.statusText);
+          }
+          const { job_id: jobId } = await res.json();
+          showStatus("running", "Classifying Prompt…", "");
+
+          const tick = async () => {
+            try {
+              const finished = await pollJob(jobId);
+              if (finished && pollTimer) {
+                clearInterval(pollTimer);
+                pollTimer = null;
+              }
+            } catch (err) {
+              showStatus("failed", "Something went wrong", String(err));
+              submitBtn.disabled = false;
+              if (pollTimer) clearInterval(pollTimer);
+            }
+          };
+
+          await tick();
+          pollTimer = setInterval(tick, 1000);
+        } catch (err) {
+          showStatus("failed", "Could not start generation", String(err));
+          submitBtn.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>

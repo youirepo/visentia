@@ -1,7 +1,7 @@
-"""AppShell: the CLI entry point.
+"""AppShell: CLI entry point for generate and serve commands.
 
 Deliberately thin per the PRD — argument parsing, .env loading, progress messaging,
-dispatch to the orchestrator, surface the result. No pipeline logic lives here.
+dispatch to the orchestrator or web server. No pipeline logic lives here.
 """
 
 from __future__ import annotations
@@ -18,9 +18,17 @@ from visentia.results import Failure, Mp4
 
 
 def main(argv: list[str] | None = None) -> int:
+    argv = list(sys.argv[1:] if argv is None else argv)
     load_dotenv()
 
-    parser = _build_parser()
+    if argv and argv[0] == "serve":
+        return _serve_main(argv[1:])
+
+    return _generate_main(argv)
+
+
+def _generate_main(argv: list[str]) -> int:
+    parser = _build_generate_parser()
     args = parser.parse_args(argv)
 
     _configure_logging(verbose=args.verbose)
@@ -52,13 +60,26 @@ def main(argv: list[str] | None = None) -> int:
     raise AssertionError(f"Unexpected result type from orchestrator: {type(result).__name__}")
 
 
-def _build_parser() -> argparse.ArgumentParser:
+def _serve_main(argv: list[str]) -> int:
+    from visentia.web_server import run_server
+
+    parser = _build_serve_parser()
+    args = parser.parse_args(argv)
+    _configure_logging(verbose=args.verbose)
+
+    try:
+        run_server(host=args.host, port=args.port, output_dir=args.output_dir)
+    except KeyboardInterrupt:
+        print("\nVisentia: server stopped.")
+    return 0
+
+
+def _build_generate_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="visentia",
         description=(
             "Visentia v0.1: generate a narrated Manim Explainer Artifact from a natural-language "
-            "Prompt. The current build (slices #2-#4) classifies the Prompt via Gemini and renders "
-            "a placeholder Scene; template-driven rendering lands in subsequent slices."
+            "Prompt, or start the localhost web UI with `visentia serve`."
         ),
     )
     parser.add_argument(
@@ -77,6 +98,37 @@ def _build_parser() -> argparse.ArgumentParser:
         "-v",
         action="store_true",
         help="Show INFO-level logs (classification, sidecar path, etc.).",
+    )
+    return parser
+
+
+def _build_serve_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="visentia serve",
+        description="Start the Visentia localhost web UI.",
+    )
+    parser.add_argument(
+        "--host",
+        default="127.0.0.1",
+        help="Host to bind (default: 127.0.0.1).",
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=8765,
+        help="Port to bind (default: 8765).",
+    )
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=None,
+        help="Directory for web-generated MP4s. Defaults to ./videos.",
+    )
+    parser.add_argument(
+        "--verbose",
+        "-v",
+        action="store_true",
+        help="Show INFO-level server logs.",
     )
     return parser
 

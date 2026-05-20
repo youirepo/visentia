@@ -39,6 +39,14 @@ visentia "If you have a triangle not to scale with the 3 sides given, how to kno
 
 The MP4 is written under `./videos/` by default. Use `--output-dir DIR` to override. A sidecar `<mp4>.json` next to the video records the active LLM provider, the classification result, the voice used, and the original prompt.
 
+Web UI:
+
+```bash
+visentia serve
+```
+
+Open http://127.0.0.1:8765 — enter a Prompt, watch progress while it generates, then play the video in the page. Metadata from the sidecar is shown below the player. Use `--port` to change the port.
+
 Tests:
 
 ```bash

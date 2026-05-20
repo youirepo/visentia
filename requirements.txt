@@ -13,6 +13,10 @@ edge-tts==7.2.8
 google-genai==2.4.0
 python-dotenv==0.21.1
 
+# Web UI (slice #5)
+fastapi==0.115.12
+uvicorn[standard]==0.34.2
+
 # setuptools<80 is a workaround: manim-voiceover 0.3.7 imports `pkg_resources` at module
 # load time, and setuptools 80 (released 2025) removed it. Drop this pin when
 # manim-voiceover ships a fix.
