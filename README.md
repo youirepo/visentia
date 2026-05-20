@@ -12,7 +12,8 @@ Requirements:
 
 - macOS or Linux
 - Python 3.11+
-- Manim CE's system dependencies — on macOS: `brew install ffmpeg cairo pango pkg-config py3cairo`. On Linux see [Manim's install docs](https://docs.manim.community/en/stable/installation.html).
+- Manim CE's system dependencies — on macOS: `brew install ffmpeg cairo pango pkg-config py3cairo sox`. On Linux see [Manim's install docs](https://docs.manim.community/en/stable/installation.html) and add `sox` from your package manager.
+- Internet access on first invocation per unique narration line (`edge-tts` reaches Microsoft's free read-aloud endpoint; results are cached locally under `media/voiceovers/`).
 
 Install:
 

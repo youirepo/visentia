@@ -15,6 +15,7 @@ from manim import tempconfig
 
 from visentia.results import Failure, GenerateResult, Mp4
 from visentia.scenes.spine import SpineScene
+from visentia.voiceover import VoiceoverSynthesizer
 
 
 class RepairOrchestrator:
@@ -54,6 +55,8 @@ class RepairOrchestrator:
                 "path_taken": "spine-stub",
                 "renderer": "manim",
                 "manim_quality": manim_config.quality,
+                "voice": VoiceoverSynthesizer.DEFAULT_VOICE,
+                "tts": "edge-tts",
             },
         )
 
