@@ -14,6 +14,11 @@ from visentia.orchestrator import RepairOrchestrator
 from visentia.web_server import JobStatus, create_app
 
 
+_FIXTURE_SOURCE = (
+    Path(__file__).parent / "fixtures" / "freeform" / "renders_fine.py"
+).read_text(encoding="utf-8")
+
+
 class _FakeProvider(LLMProvider):
     name = "fake"
     model = "fake-model"
@@ -26,7 +31,10 @@ class _FakeProvider(LLMProvider):
         temperature: float = CODEGEN_TEMPERATURE,
         response_schema: dict | None = None,
     ) -> str:
-        del messages, system, temperature, response_schema
+        del system, temperature, response_schema
+        content = messages[-1]["content"] if messages else ""
+        if "Return the complete Python file" in content or "Math content type" in content:
+            return _FIXTURE_SOURCE
         return json.dumps(
             {
                 "math_content_type": "Relationship",

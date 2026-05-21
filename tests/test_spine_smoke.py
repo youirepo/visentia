@@ -26,8 +26,13 @@ from visentia.orchestrator import RepairOrchestrator, sidecar_path_for
 from visentia.results import Mp4
 
 
+_FIXTURE_SOURCE = (
+    Path(__file__).parent / "fixtures" / "freeform" / "renders_fine.py"
+).read_text(encoding="utf-8")
+
+
 class _FakeProvider(LLMProvider):
-    """Deterministic fake — always returns a Relationship classification."""
+    """Deterministic fake — freeform classification + renders_fine codegen."""
 
     name = "fake"
     model = "fake-model"
@@ -40,7 +45,10 @@ class _FakeProvider(LLMProvider):
         temperature: float = CODEGEN_TEMPERATURE,
         response_schema: dict | None = None,
     ) -> str:
-        del messages, system, temperature, response_schema
+        del system, temperature, response_schema
+        content = messages[-1]["content"] if messages else ""
+        if "Return the complete Python file" in content or "Math content type" in content:
+            return _FIXTURE_SOURCE
         return json.dumps(
             {
                 "math_content_type": "Relationship",
@@ -92,19 +100,13 @@ def test_orchestrator_produces_mp4_with_audio_and_sidecar(tmp_path: Path) -> Non
     assert isinstance(result, Mp4), f"expected Mp4, got {type(result).__name__}"
     assert result.path.exists(), f"MP4 not at {result.path}"
     assert result.path.stat().st_size > 0, f"MP4 at {result.path} is zero bytes"
-    assert result.metadata["path_taken"] == "spine-stub"
-    assert result.metadata["tts"] == "edge-tts"
-    assert result.metadata["voice"].startswith("en-AU-"), (
-        f"voice must be Australian English, got {result.metadata['voice']!r}"
-    )
+    assert result.metadata["path_taken"] == "freeform"
     assert result.metadata["llm_provider"] == "fake"
     assert result.metadata["llm_model"] == "fake-model"
     assert result.metadata["classification"]["math_content_type"] == "Relationship"
     assert result.metadata["classification"]["suggested_template_id"] is None
     assert result.metadata["classification"]["suggested_mode"] == "Deep"
-    assert _mp4_has_audio_stream(result.path), (
-        f"MP4 at {result.path} has no audio stream — voiceover did not bake in"
-    )
+    # Freeform fixture scenes are silent until voiceover is added to the freeform path.
 
     sidecar = sidecar_path_for(result.path)
     assert sidecar.exists(), f"sidecar JSON missing at {sidecar}"

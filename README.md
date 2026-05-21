@@ -4,7 +4,7 @@ Visentia helps a Tutor understand a math concept well enough to teach it. Type a
 
 Curriculum scope (MVP): NSW NESA Year 7–10 mathematics (Stage 4 + Stage 5).
 
-> This is **v0.1 in flight**. Converse-of-Pythagoras prompts route to the **Triangle3Side** curriculum template (issue [#6](https://github.com/youirepo/visentia/issues/6)); other prompts still use the placeholder spine until more templates land.
+> This is **v0.1 in flight**. Converse-of-Pythagoras prompts route to the **Triangle3Side** curriculum template (issue [#6](https://github.com/youirepo/visentia/issues/6)); other prompts use the **freeform** path (LLM codegen → static lint → sandboxed Manim render, issue [#7](https://github.com/youirepo/visentia/issues/7)).
 
 ## Quick start: install + run
 
@@ -59,6 +59,7 @@ pytest
 |---|---|
 | [`CONTEXT.md`](./CONTEXT.md) | Domain glossary (Tutor, Prompt, Explainer Artifact, Math Content Type, Mode). Read this first. |
 | [`docs/adr/`](./docs/adr/) | Architectural Decision Records. 0001 (explainer artifact concept), 0002 (video-first MVP via Manim), 0003 (two-layer validation pipeline for LLM codegen). |
+| [`docs/agents/manim-ce-api-model.md`](./docs/agents/manim-ce-api-model.md) | How to refresh the StaticLinter's Manim CE API snapshot when Manim is bumped. |
 | [`docs/evals/seed.md`](./docs/evals/seed.md) | The seed eval set — real Tutor prompts with graded success criteria. Visentia's regression suite. |
 | [`prototype/results.md`](./prototype/results.md) | The 2026-05-19 Gemini 3 Flash Preview + Manim codegen feasibility probe. |
 | GitHub [issue #1](https://github.com/youirepo/visentia/issues/1) | v0.1 PRD. |

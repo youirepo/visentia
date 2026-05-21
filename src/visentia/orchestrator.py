@@ -1,8 +1,7 @@
 """RepairOrchestrator: the pipeline policy module.
 
 Routes each Prompt through classification, then either a curriculum template (when the
-classifier suggests one and params fill successfully) or the placeholder spine until the
-freeform path lands in slice #7.
+classifier suggests one and params fill successfully) or freeform codegen + lint + sandboxed render.
 """
 
 from __future__ import annotations
@@ -12,13 +11,21 @@ import logging
 from pathlib import Path
 
 from manim import config as manim_config
-from manim import tempconfig
 
 from visentia.classifier import Classification, ClassifierError, ContentClassifier
+from visentia.freeform import (
+    CodegenError,
+    FreeformCodegen,
+    LintOk,
+    RenderFailure,
+    RenderSuccess,
+    RenderTimeout,
+    SandboxedRenderer,
+    StaticLinter,
+)
 from visentia.llm import LLMError, LLMProvider, MissingApiKeyError
 from visentia.llm.gemini import Gemini
 from visentia.results import Failure, GenerateResult, Mp4
-from visentia.scenes.spine import SpineScene
 from visentia.templates import FillError, ParamFiller, TemplateLibrary
 from visentia.voiceover import VoiceoverSynthesizer
 
@@ -84,7 +91,7 @@ class RepairOrchestrator:
             classification.suggested_template_id,
         )
 
-        path_taken = "spine-stub"
+        path_taken = "freeform"
         template_params: dict | None = None
 
         try:
@@ -95,7 +102,23 @@ class RepairOrchestrator:
                     target_dir,
                 )
             else:
-                mp4_path = _render_spine_scene(target_dir)
+                mp4_path, path_taken = self._render_freeform(
+                    prompt,
+                    classification,
+                    target_dir,
+                )
+        except CodegenError as exc:
+            return Failure(
+                message="Visentia couldn't generate Manim code for this Prompt.",
+                attempts_made=1,
+                last_error=str(exc),
+            )
+        except _FreeformRenderError as exc:
+            return Failure(
+                message=str(exc),
+                attempts_made=1,
+                last_error=exc.stderr or None,
+            )
         except Exception as exc:
             return Failure(
                 message="Visentia couldn't render the Explainer Artifact. Check that Manim is installed correctly.",
@@ -145,23 +168,45 @@ class RepairOrchestrator:
         mp4_path = self._template_library.render(template_id, fill_result, output_dir)
         return mp4_path, f"template:{template_id}", fill_result
 
+    def _render_freeform(
+        self,
+        prompt: str,
+        classification: Classification,
+        output_dir: Path,
+    ) -> tuple[Path, str]:
+        codegen = FreeformCodegen(self.provider)
+        source = codegen.generate(prompt, classification.math_content_type)
 
-def _render_spine_scene(output_dir: Path) -> Path:
-    """Render the placeholder Scene to `output_dir` and return the resulting MP4 path."""
+        linter = StaticLinter()
+        lint_result = linter.lint(source)
+        if not isinstance(lint_result, LintOk):
+            raise _FreeformRenderError(
+                StaticLinter.plain_language_summary(lint_result),
+                "; ".join(e.message for e in lint_result),
+            )
 
-    with tempconfig(
-        {
-            "media_dir": str(output_dir),
-            "output_file": "spine",
-            "format": "mp4",
-            "verbosity": "WARNING",
-            "quality": "low_quality",
-            "disable_caching": True,
-        }
-    ):
-        scene = SpineScene()
-        scene.render()
-        return Path(scene.renderer.file_writer.movie_file_path).resolve()
+        renderer = SandboxedRenderer()
+        render_result = renderer.render(source, lint_result.scene_class_name, output_dir)
+
+        if isinstance(render_result, RenderSuccess):
+            return render_result.mp4_path, "freeform"
+
+        if isinstance(render_result, RenderTimeout):
+            raise _FreeformRenderError(
+                "Rendering took too long. Try a simpler Prompt or use Quick Mode.",
+                render_result.stderr,
+            )
+
+        if isinstance(render_result, RenderFailure):
+            raise _FreeformRenderError(render_result.message, render_result.stderr)
+
+        raise AssertionError(f"unexpected render result: {type(render_result).__name__}")
+
+
+class _FreeformRenderError(RuntimeError):
+    def __init__(self, message: str, stderr: str = "") -> None:
+        super().__init__(message)
+        self.stderr = stderr
 
 
 def _write_metadata_sidecar(mp4_path: Path, metadata: dict) -> Path:

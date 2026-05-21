@@ -34,7 +34,7 @@ build-backend = "setuptools.build_meta"
 where = ["src"]
 
 [tool.setuptools.package-data]
-visentia = ["web_static/*"]
+visentia = ["web_static/*", "freeform/data/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
