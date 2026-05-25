@@ -63,8 +63,22 @@ class FreeformCodegen:
 
 
 def _strip_code_fences(text: str) -> str:
+    """Keep only the Python file — models often wrap code in markdown or add a preamble."""
+
     stripped = text.strip()
     match = re.search(r"```(?:python)?\s*\n(.*?)```", stripped, re.DOTALL | re.IGNORECASE)
     if match:
         return match.group(1).strip()
+
+    # Opening fence without a closing fence (common with long generations).
+    match = re.search(r"```(?:python)?\s*\n(.+)", stripped, re.DOTALL | re.IGNORECASE)
+    if match:
+        return match.group(1).strip()
+
+    # Prose before the file body — start at the Manim import.
+    for marker in ("from manim import *", "from manim import"):
+        idx = stripped.find(marker)
+        if idx != -1:
+            return stripped[idx:].strip()
+
     return stripped

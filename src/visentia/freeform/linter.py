@@ -44,13 +44,7 @@ class StaticLinter:
         try:
             tree = ast.parse(python_source)
         except SyntaxError as exc:
-            return [
-                LintError(
-                    code="syntax_error",
-                    message=f"Generated code has a Python syntax error: {exc.msg}",
-                    line=exc.lineno,
-                )
-            ]
+            return [LintError(code="syntax_error", message=_syntax_error_message(exc))]
 
         symbols, class_kwargs = load_api_model()
         errors: list[LintError] = []
@@ -101,6 +95,17 @@ class StaticLinter:
         bullets = "\n".join(f"- {e.message}" for e in result[:5])
         extra = "" if len(result) <= 5 else f"\n- …and {len(result) - 5} more issue(s)."
         return "Generated code has several problems:\n" + bullets + extra
+
+
+def _syntax_error_message(exc: SyntaxError) -> str:
+    line_part = f" on line {exc.lineno}" if exc.lineno else ""
+    near = ""
+    if exc.text:
+        near = f" Problematic line: {exc.text.strip()!r}."
+    return (
+        f"Generated code has a Python syntax error{line_part}: {exc.msg}.{near} "
+        "Visentia stopped before running Manim. Try the Prompt again, or rephrase it."
+    )
 
 
 def _has_manim_import(tree: ast.Module) -> bool:
