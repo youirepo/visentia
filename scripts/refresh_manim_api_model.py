@@ -39,11 +39,13 @@ def _params(cls: type) -> set[str]:
 
 
 def _kwargs_for(cls: type) -> list[str]:
-    own = _params(cls)
-    if issubclass(cls, VMobject):
-        own |= _params(VMobject)
-    if issubclass(cls, Mobject):
-        own |= _params(Mobject)
+    """All keyword names accepted via the class MRO (e.g. MathTex inherits font_size)."""
+
+    own: set[str] = set()
+    for base in cls.__mro__:
+        if base is object:
+            break
+        own |= _params(base)
     return sorted(own)
 
 

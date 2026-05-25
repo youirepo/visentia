@@ -63,3 +63,15 @@ class TexColor(Scene):
 """
     result = linter.lint(source)
     assert isinstance(result, LintOk)
+
+
+def test_lint_accepts_mathtex_with_font_size(linter: StaticLinter) -> None:
+    source = """\
+from manim import *
+
+class MathTexSize(Scene):
+    def construct(self):
+        self.add(MathTex(r"x^2", font_size=48), Tex("y", font_size=36))
+"""
+    result = linter.lint(source)
+    assert isinstance(result, LintOk)
