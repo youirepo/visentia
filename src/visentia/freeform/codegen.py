@@ -18,6 +18,17 @@ Requirements:
 - Use only Manim CE APIs (no CYAN — use TEAL; no stroke_dash_array on Rectangle)
 - Use raw strings for all MathTex/Tex/MarkupText LaTeX (prefix with r)
 - Mathematically correct; clear step-by-step visuals for the Tutor
+
+Layout (critical — avoid unreadable overlaps):
+- Reveal one step at a time. Before showing the next formula, FadeOut or Replace the
+  previous step's working (keep the title/problem if needed).
+- Never Write/FadeIn a new MathTex/Tex at the same position as an existing one.
+- Stack content vertically: use VGroup(...).arrange(DOWN, buff=0.4, aligned_edge=LEFT)
+  or .next_to(previous, DOWN, buff=0.5). Keep the active working line in the lower half.
+- Do not leave multiple full formulas visible in the same screen region.
+
+Note: Visentia's freeform path does not add voiceover yet — do not import manim_voiceover;
+silent Scene only (curriculum templates handle narration separately).
 """
 
 
