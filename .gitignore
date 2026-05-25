@@ -20,3 +20,7 @@ dist/
 # Manim render outputs (regeneratable from source)
 media/
 videos/
+
+# Eval harness outputs (visentia eval)
+eval-runs/
+eval-reports/
