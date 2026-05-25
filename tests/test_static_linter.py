@@ -51,3 +51,15 @@ def test_lint_missing_manim_import(linter: StaticLinter) -> None:
     result = linter.lint(_read("lint_missing_import.py"))
     assert isinstance(result, list)
     assert any(e.code == "missing_import" for e in result)
+
+
+def test_lint_accepts_tex_with_color_kwarg(linter: StaticLinter) -> None:
+    source = """\
+from manim import *
+
+class TexColor(Scene):
+    def construct(self):
+        self.add(Tex("x", color=RED))
+"""
+    result = linter.lint(source)
+    assert isinstance(result, LintOk)

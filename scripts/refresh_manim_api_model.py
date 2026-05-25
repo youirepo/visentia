@@ -9,7 +9,7 @@ import re
 from pathlib import Path
 
 import manim
-from manim import VMobject
+from manim import Mobject, VMobject
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 API_MODEL_PY = REPO_ROOT / "src/visentia/freeform/api_model.py"
@@ -30,18 +30,20 @@ LINTER_CLASSES = [
 ]
 
 
-def _kwargs_for(cls: type) -> list[str]:
-    own = {
+def _params(cls: type) -> set[str]:
+    return {
         p
         for p in inspect.signature(cls.__init__).parameters
         if p not in ("self", "args", "kwargs")
     }
-    if issubclass(cls, VMobject) and cls is not VMobject:
-        own |= {
-            p
-            for p in inspect.signature(VMobject.__init__).parameters
-            if p not in ("self", "args", "kwargs")
-        }
+
+
+def _kwargs_for(cls: type) -> list[str]:
+    own = _params(cls)
+    if issubclass(cls, VMobject):
+        own |= _params(VMobject)
+    if issubclass(cls, Mobject):
+        own |= _params(Mobject)
     return sorted(own)
 
 

@@ -589,6 +589,7 @@
       "cap_style",
       "close_new_points",
       "color",
+      "dim",
       "fill_color",
       "fill_opacity",
       "grid_xstep",
@@ -598,6 +599,7 @@
       "make_smooth_after_applying_functions",
       "mark_paths_closed",
       "n_points_per_cubic_curve",
+      "name",
       "pre_function_handle_to_anchor_scale_factor",
       "shade_in_3d",
       "sheen_direction",
@@ -605,8 +607,10 @@
       "stroke_color",
       "stroke_opacity",
       "stroke_width",
+      "target",
       "tolerance_for_point_equality",
-      "width"
+      "width",
+      "z_index"
     ],
     "Polygon": [
       "background_image",
@@ -615,11 +619,14 @@
       "background_stroke_width",
       "cap_style",
       "close_new_points",
+      "color",
+      "dim",
       "fill_color",
       "fill_opacity",
       "joint_type",
       "make_smooth_after_applying_functions",
       "n_points_per_cubic_curve",
+      "name",
       "pre_function_handle_to_anchor_scale_factor",
       "shade_in_3d",
       "sheen_direction",
@@ -627,8 +634,10 @@
       "stroke_color",
       "stroke_opacity",
       "stroke_width",
+      "target",
       "tolerance_for_point_equality",
-      "vertices"
+      "vertices",
+      "z_index"
     ],
     "Line": [
       "background_image",
@@ -638,12 +647,15 @@
       "buff",
       "cap_style",
       "close_new_points",
+      "color",
+      "dim",
       "end",
       "fill_color",
       "fill_opacity",
       "joint_type",
       "make_smooth_after_applying_functions",
       "n_points_per_cubic_curve",
+      "name",
       "path_arc",
       "pre_function_handle_to_anchor_scale_factor",
       "shade_in_3d",
@@ -653,7 +665,9 @@
       "stroke_color",
       "stroke_opacity",
       "stroke_width",
-      "tolerance_for_point_equality"
+      "target",
+      "tolerance_for_point_equality",
+      "z_index"
     ],
     "Text": [
       "background_image",
@@ -663,6 +677,7 @@
       "cap_style",
       "close_new_points",
       "color",
+      "dim",
       "disable_ligatures",
       "fill_color",
       "fill_opacity",
@@ -674,6 +689,7 @@
       "line_spacing",
       "make_smooth_after_applying_functions",
       "n_points_per_cubic_curve",
+      "name",
       "pre_function_handle_to_anchor_scale_factor",
       "shade_in_3d",
       "sheen_direction",
@@ -689,12 +705,14 @@
       "t2s",
       "t2w",
       "tab_width",
+      "target",
       "text",
       "tolerance_for_point_equality",
       "use_svg_cache",
       "warn_missing_font",
       "weight",
-      "width"
+      "width",
+      "z_index"
     ],
     "MathTex": [
       "arg_separator",
@@ -704,11 +722,14 @@
       "background_stroke_width",
       "cap_style",
       "close_new_points",
+      "color",
+      "dim",
       "fill_color",
       "fill_opacity",
       "joint_type",
       "make_smooth_after_applying_functions",
       "n_points_per_cubic_curve",
+      "name",
       "pre_function_handle_to_anchor_scale_factor",
       "shade_in_3d",
       "sheen_direction",
@@ -717,10 +738,12 @@
       "stroke_opacity",
       "stroke_width",
       "substrings_to_isolate",
+      "target",
       "tex_environment",
       "tex_strings",
       "tex_to_color_map",
-      "tolerance_for_point_equality"
+      "tolerance_for_point_equality",
+      "z_index"
     ],
     "Tex": [
       "arg_separator",
@@ -730,11 +753,14 @@
       "background_stroke_width",
       "cap_style",
       "close_new_points",
+      "color",
+      "dim",
       "fill_color",
       "fill_opacity",
       "joint_type",
       "make_smooth_after_applying_functions",
       "n_points_per_cubic_curve",
+      "name",
       "pre_function_handle_to_anchor_scale_factor",
       "shade_in_3d",
       "sheen_direction",
@@ -742,9 +768,11 @@
       "stroke_color",
       "stroke_opacity",
       "stroke_width",
+      "target",
       "tex_environment",
       "tex_strings",
-      "tolerance_for_point_equality"
+      "tolerance_for_point_equality",
+      "z_index"
     ],
     "MarkupText": [
       "background_image",
@@ -754,6 +782,7 @@
       "cap_style",
       "close_new_points",
       "color",
+      "dim",
       "disable_ligatures",
       "fill_color",
       "fill_opacity",
@@ -766,6 +795,7 @@
       "line_spacing",
       "make_smooth_after_applying_functions",
       "n_points_per_cubic_curve",
+      "name",
       "pre_function_handle_to_anchor_scale_factor",
       "shade_in_3d",
       "sheen_direction",
@@ -776,11 +806,13 @@
       "stroke_opacity",
       "stroke_width",
       "tab_width",
+      "target",
       "text",
       "tolerance_for_point_equality",
       "warn_missing_font",
       "weight",
-      "width"
+      "width",
+      "z_index"
     ],
     "Circle": [
       "background_image",
@@ -790,11 +822,13 @@
       "cap_style",
       "close_new_points",
       "color",
+      "dim",
       "fill_color",
       "fill_opacity",
       "joint_type",
       "make_smooth_after_applying_functions",
       "n_points_per_cubic_curve",
+      "name",
       "pre_function_handle_to_anchor_scale_factor",
       "radius",
       "shade_in_3d",
@@ -803,7 +837,9 @@
       "stroke_color",
       "stroke_opacity",
       "stroke_width",
-      "tolerance_for_point_equality"
+      "target",
+      "tolerance_for_point_equality",
+      "z_index"
     ],
     "Dot": [
       "background_image",
@@ -813,11 +849,13 @@
       "cap_style",
       "close_new_points",
       "color",
+      "dim",
       "fill_color",
       "fill_opacity",
       "joint_type",
       "make_smooth_after_applying_functions",
       "n_points_per_cubic_curve",
+      "name",
       "point",
       "pre_function_handle_to_anchor_scale_factor",
       "radius",
@@ -827,7 +865,9 @@
       "stroke_color",
       "stroke_opacity",
       "stroke_width",
-      "tolerance_for_point_equality"
+      "target",
+      "tolerance_for_point_equality",
+      "z_index"
     ],
     "VGroup": [
       "background_image",
@@ -836,11 +876,14 @@
       "background_stroke_width",
       "cap_style",
       "close_new_points",
+      "color",
+      "dim",
       "fill_color",
       "fill_opacity",
       "joint_type",
       "make_smooth_after_applying_functions",
       "n_points_per_cubic_curve",
+      "name",
       "pre_function_handle_to_anchor_scale_factor",
       "shade_in_3d",
       "sheen_direction",
@@ -848,8 +891,10 @@
       "stroke_color",
       "stroke_opacity",
       "stroke_width",
+      "target",
       "tolerance_for_point_equality",
-      "vmobjects"
+      "vmobjects",
+      "z_index"
     ],
     "Arrow": [
       "background_image",
@@ -859,6 +904,8 @@
       "buff",
       "cap_style",
       "close_new_points",
+      "color",
+      "dim",
       "fill_color",
       "fill_opacity",
       "joint_type",
@@ -866,6 +913,7 @@
       "max_stroke_width_to_length_ratio",
       "max_tip_length_to_length_ratio",
       "n_points_per_cubic_curve",
+      "name",
       "pre_function_handle_to_anchor_scale_factor",
       "shade_in_3d",
       "sheen_direction",
@@ -873,7 +921,9 @@
       "stroke_color",
       "stroke_opacity",
       "stroke_width",
-      "tolerance_for_point_equality"
+      "target",
+      "tolerance_for_point_equality",
+      "z_index"
     ]
   }
 }

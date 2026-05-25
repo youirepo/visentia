@@ -80,7 +80,7 @@ class StaticLinter:
             errors.append(err)
 
         if errors:
-            return errors
+            return _dedupe_errors(errors)
         assert scene_name is not None
         return LintOk(scene_class_name=scene_name)
 
@@ -95,6 +95,18 @@ class StaticLinter:
         bullets = "\n".join(f"- {e.message}" for e in result[:5])
         extra = "" if len(result) <= 5 else f"\n- …and {len(result) - 5} more issue(s)."
         return "Generated code has several problems:\n" + bullets + extra
+
+
+def _dedupe_errors(errors: list[LintError]) -> list[LintError]:
+    seen: set[tuple[str, str, int | None]] = set()
+    out: list[LintError] = []
+    for err in errors:
+        key = (err.code, err.message, err.line)
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(err)
+    return out
 
 
 def _syntax_error_message(exc: SyntaxError) -> str:
