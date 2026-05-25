@@ -74,7 +74,8 @@ def test_orchestrator_routes_to_triangle_template(tmp_path: Path) -> None:
     )
 
     assert isinstance(result, Mp4)
-    assert result.metadata["path_taken"] == "template:Triangle3Side"
+    assert result.metadata["path_taken"] == "template"
+    assert result.metadata["classification_mode"] == "template"
     assert result.metadata["template_params"]["side_a"] == 3
     assert result.path.exists()
     assert result.path.stat().st_size > 0

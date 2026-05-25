@@ -1,7 +1,8 @@
 """RepairOrchestrator: the pipeline policy module.
 
 Routes each Prompt through classification, then either a curriculum template (when the
-classifier suggests one and params fill successfully) or freeform codegen + lint + sandboxed render.
+classifier suggests one and params fill successfully) or freeform codegen with a
+shared lint/render repair loop (ADR-0003).
 """
 
 from __future__ import annotations
@@ -23,6 +24,7 @@ from visentia.freeform import (
     SandboxedRenderer,
     StaticLinter,
 )
+from visentia.freeform.repair import format_lint_repair_context, format_render_result_context
 from visentia.llm import LLMError, LLMProvider, MissingApiKeyError
 from visentia.llm.gemini import Gemini
 from visentia.results import Failure, GenerateResult, Mp4
@@ -32,17 +34,28 @@ from visentia.voiceover import VoiceoverSynthesizer
 logger = logging.getLogger(__name__)
 
 
+class FreeformExhausted(Exception):
+    """Freeform repair budget spent without a successful render."""
+
+    def __init__(self, *, attempts: int, message: str, last_error: str) -> None:
+        super().__init__(message)
+        self.attempts = attempts
+        self.last_error = last_error
+
+
 class RepairOrchestrator:
-    """v0.1 pipeline: classify → template render (if matched) else placeholder spine."""
+    """v0.1 pipeline: classify → template (if matched) else freeform with repair loop."""
 
     def __init__(
         self,
         provider: LLMProvider | None = None,
         *,
         template_library: TemplateLibrary | None = None,
+        sandboxed_renderer: SandboxedRenderer | None = None,
     ) -> None:
         self._provider = provider
         self._template_library = template_library or TemplateLibrary()
+        self._sandboxed_renderer = sandboxed_renderer
 
     @property
     def provider(self) -> LLMProvider:
@@ -57,7 +70,8 @@ class RepairOrchestrator:
         output_dir: Path | None = None,
         max_attempts: int = 3,
     ) -> GenerateResult:
-        del max_attempts
+        if max_attempts < 1:
+            raise ValueError("max_attempts must be at least 1")
 
         target_dir = (output_dir or Path.cwd() / "videos").resolve()
         target_dir.mkdir(parents=True, exist_ok=True)
@@ -91,43 +105,90 @@ class RepairOrchestrator:
             classification.suggested_template_id,
         )
 
-        path_taken = "freeform"
         template_params: dict | None = None
+        freeform_attempts: int | None = None
+        classification_mode = (
+            "template" if classification.suggested_template_id else "freeform"
+        )
 
         try:
             if classification.suggested_template_id:
-                mp4_path, path_taken, template_params = self._render_template(
-                    prompt,
-                    classification,
-                    target_dir,
-                )
+                try:
+                    mp4_path, path_taken, template_params = self._render_template(
+                        prompt,
+                        classification,
+                        target_dir,
+                    )
+                except RuntimeError as template_exc:
+                    logger.warning(
+                        "Template path failed (%s); trying freeform with repair loop",
+                        template_exc,
+                    )
+                    classification_mode = "freeform"
+                    mp4_path, path_taken, freeform_attempts = self._render_freeform(
+                        prompt,
+                        classification,
+                        target_dir,
+                        max_attempts=max_attempts,
+                    )
             else:
-                mp4_path, path_taken = self._render_freeform(
+                mp4_path, path_taken, freeform_attempts = self._render_freeform(
                     prompt,
                     classification,
                     target_dir,
+                    max_attempts=max_attempts,
+                )
+        except FreeformExhausted as exc:
+            logger.warning(
+                "Freeform exhausted after %s attempts; last_error=%s",
+                exc.attempts,
+                exc.last_error[:500],
+            )
+            if classification.suggested_template_id:
+                try:
+                    mp4_path, path_taken, template_params = self._render_template(
+                        prompt,
+                        classification,
+                        target_dir,
+                    )
+                    path_taken = "freeform-fallback-to-template"
+                    classification_mode = "freeform-fallback-to-template"
+                    freeform_attempts = exc.attempts
+                except Exception as fallback_exc:
+                    return Failure(
+                        message=(
+                            "Visentia couldn't generate a freeform video after several tries, "
+                            "and the curriculum template fallback also failed."
+                        ),
+                        attempts_made=exc.attempts,
+                        last_error=str(fallback_exc),
+                        path_taken="total-failure",
+                    )
+            else:
+                return Failure(
+                    message=str(exc.args[0]),
+                    attempts_made=exc.attempts,
+                    last_error=exc.last_error,
+                    path_taken="total-failure",
                 )
         except CodegenError as exc:
             return Failure(
                 message="Visentia couldn't generate Manim code for this Prompt.",
                 attempts_made=1,
                 last_error=str(exc),
-            )
-        except _FreeformRenderError as exc:
-            return Failure(
-                message=str(exc),
-                attempts_made=1,
-                last_error=exc.stderr or None,
+                path_taken="total-failure",
             )
         except Exception as exc:
             return Failure(
                 message="Visentia couldn't render the Explainer Artifact. Check that Manim is installed correctly.",
                 attempts_made=1,
                 last_error=str(exc),
+                path_taken="total-failure",
             )
 
         metadata = {
             "path_taken": path_taken,
+            "classification_mode": classification_mode,
             "renderer": "manim",
             "manim_quality": manim_config.quality,
             "voice": VoiceoverSynthesizer.DEFAULT_VOICE,
@@ -143,9 +204,16 @@ class RepairOrchestrator:
         }
         if template_params is not None:
             metadata["template_params"] = template_params
+        if freeform_attempts is not None:
+            metadata["freeform_attempts"] = freeform_attempts
 
         sidecar_path = _write_metadata_sidecar(mp4_path, metadata)
-        logger.info("Visentia sidecar metadata written to %s", sidecar_path)
+        logger.info(
+            "Visentia sidecar metadata written to %s (path_taken=%s, freeform_attempts=%s)",
+            sidecar_path,
+            path_taken,
+            freeform_attempts,
+        )
 
         return Mp4(path=mp4_path, metadata=metadata)
 
@@ -163,50 +231,81 @@ class RepairOrchestrator:
         fill_result = filler.fill(prompt, spec)
 
         if isinstance(fill_result, FillError):
-            raise RuntimeError(fill_result.message + (f" ({fill_result.last_error})" if fill_result.last_error else ""))
+            raise RuntimeError(
+                fill_result.message
+                + (f" ({fill_result.last_error})" if fill_result.last_error else "")
+            )
 
         mp4_path = self._template_library.render(template_id, fill_result, output_dir)
-        return mp4_path, f"template:{template_id}", fill_result
+        return mp4_path, "template", fill_result
 
     def _render_freeform(
         self,
         prompt: str,
         classification: Classification,
         output_dir: Path,
-    ) -> tuple[Path, str]:
+        *,
+        max_attempts: int,
+    ) -> tuple[Path, str, int]:
         codegen = FreeformCodegen(self.provider)
-        source = codegen.generate(prompt, classification.math_content_type)
-
         linter = StaticLinter()
-        lint_result = linter.lint(source)
-        if not isinstance(lint_result, LintOk):
-            raise _FreeformRenderError(
-                StaticLinter.plain_language_summary(lint_result),
-                "; ".join(e.message for e in lint_result),
+        renderer = self._sandboxed_renderer or SandboxedRenderer()
+
+        repair_context: str | None = None
+        last_error = ""
+
+        for attempt in range(1, max_attempts + 1):
+            logger.info("Freeform attempt %s/%s", attempt, max_attempts)
+
+            try:
+                source = codegen.generate(
+                    prompt,
+                    classification.math_content_type,
+                    repair_context=repair_context,
+                )
+            except CodegenError as exc:
+                last_error = str(exc)
+                repair_context = (
+                    f"Code generation failed: {exc}\nReturn the complete corrected Python file only."
+                )
+                continue
+
+            lint_result = linter.lint(source)
+            if not isinstance(lint_result, LintOk):
+                last_error = "; ".join(e.message for e in lint_result)
+                repair_context = format_lint_repair_context(lint_result)
+                logger.info("Freeform attempt %s: lint failed", attempt)
+                continue
+
+            render_result = renderer.render(
+                source, lint_result.scene_class_name, output_dir
             )
 
-        renderer = SandboxedRenderer()
-        render_result = renderer.render(source, lint_result.scene_class_name, output_dir)
+            if isinstance(render_result, RenderSuccess):
+                path_taken = f"freeform-success-on-attempt-{attempt}"
+                logger.info("Freeform succeeded on attempt %s", attempt)
+                return render_result.mp4_path, path_taken, attempt
 
-        if isinstance(render_result, RenderSuccess):
-            return render_result.mp4_path, "freeform"
-
-        if isinstance(render_result, RenderTimeout):
-            raise _FreeformRenderError(
-                "Rendering took too long. Try a simpler Prompt or use Quick Mode.",
-                render_result.stderr,
+            last_error = (
+                render_result.stderr
+                if isinstance(render_result, (RenderFailure, RenderTimeout))
+                else str(render_result)
             )
+            if isinstance(render_result, RenderFailure):
+                last_error = render_result.message + (
+                    f" ({render_result.stderr[:500]})" if render_result.stderr else ""
+                )
+            repair_context = format_render_result_context(render_result)
+            logger.info("Freeform attempt %s: render failed", attempt)
 
-        if isinstance(render_result, RenderFailure):
-            raise _FreeformRenderError(render_result.message, render_result.stderr)
-
-        raise AssertionError(f"unexpected render result: {type(render_result).__name__}")
-
-
-class _FreeformRenderError(RuntimeError):
-    def __init__(self, message: str, stderr: str = "") -> None:
-        super().__init__(message)
-        self.stderr = stderr
+        raise FreeformExhausted(
+            attempts=max_attempts,
+            message=(
+                "Visentia couldn't produce a valid video after several tries. "
+                "Try rephrasing the Prompt or simplifying what you're asking for."
+            ),
+            last_error=last_error,
+        )
 
 
 def _write_metadata_sidecar(mp4_path: Path, metadata: dict) -> Path:

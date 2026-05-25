@@ -30,6 +30,7 @@ class Failure:
     message: str
     attempts_made: int = 0
     last_error: str | None = None
+    path_taken: str = "total-failure"
 
 
 GenerateResult = Mp4 | Failure

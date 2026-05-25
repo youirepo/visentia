@@ -100,7 +100,8 @@ def test_orchestrator_produces_mp4_with_audio_and_sidecar(tmp_path: Path) -> Non
     assert isinstance(result, Mp4), f"expected Mp4, got {type(result).__name__}"
     assert result.path.exists(), f"MP4 not at {result.path}"
     assert result.path.stat().st_size > 0, f"MP4 at {result.path} is zero bytes"
-    assert result.metadata["path_taken"] == "freeform"
+    assert result.metadata["path_taken"] == "freeform-success-on-attempt-1"
+    assert result.metadata["freeform_attempts"] == 1
     assert result.metadata["llm_provider"] == "fake"
     assert result.metadata["llm_model"] == "fake-model"
     assert result.metadata["classification"]["math_content_type"] == "Relationship"

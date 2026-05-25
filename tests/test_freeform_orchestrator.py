@@ -54,7 +54,7 @@ def test_orchestrator_freeform_path_produces_mp4(tmp_path: Path) -> None:
     assert isinstance(result, Mp4), f"expected Mp4, got {type(result).__name__}: {result}"
     assert result.path.exists()
     assert result.path.stat().st_size > 0
-    assert result.metadata["path_taken"] == "freeform"
+    assert result.metadata["path_taken"] == "freeform-success-on-attempt-1"
     assert result.metadata["classification"]["suggested_template_id"] is None
 
 
@@ -79,7 +79,8 @@ def test_orchestrator_surfaces_lint_failure_without_traceback(tmp_path: Path) ->
             )
 
     orchestrator = RepairOrchestrator(provider=_BadCodegenProvider())
-    result = orchestrator.generate_video("any", output_dir=tmp_path)
+    result = orchestrator.generate_video("any", output_dir=tmp_path, max_attempts=3)
     assert isinstance(result, Failure)
+    assert result.attempts_made == 3
+    assert result.path_taken == "total-failure"
     assert "Traceback" not in result.message
-    assert "manim import" in result.message.lower() or "Scene" in result.message

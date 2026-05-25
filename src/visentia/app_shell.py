@@ -53,6 +53,7 @@ def _generate_main(argv: list[str]) -> int:
 
     if isinstance(result, Failure):
         print(f"Visentia: generation failed. {result.message}", file=sys.stderr)
+        print(f"  Path taken: {result.path_taken}", file=sys.stderr)
         if result.last_error:
             print(f"  (operator detail: {result.last_error})", file=sys.stderr)
         return 1

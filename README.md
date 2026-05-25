@@ -4,7 +4,7 @@ Visentia helps a Tutor understand a math concept well enough to teach it. Type a
 
 Curriculum scope (MVP): NSW NESA Year 7–10 mathematics (Stage 4 + Stage 5).
 
-> This is **v0.1 in flight**. Converse-of-Pythagoras prompts route to the **Triangle3Side** curriculum template (issue [#6](https://github.com/youirepo/visentia/issues/6)) — **with voiceover**. Other prompts use the **freeform** path (LLM codegen → lint → render, issue [#7](https://github.com/youirepo/visentia/issues/7)) — **silent video only** for now; overlapping on-screen text is a known LLM layout risk until codegen/repair improve.
+> This is **v0.1 in flight**. Converse-of-Pythagoras prompts route to the **Triangle3Side** curriculum template (issue [#6](https://github.com/youirepo/visentia/issues/6)) — **with voiceover**. Other prompts use the **freeform** path (codegen → lint → render, issue [#7](https://github.com/youirepo/visentia/issues/7)) with up to **3 repair attempts** and template fallback when registered (issue [#8](https://github.com/youirepo/visentia/issues/8)). Freeform video is still **silent**; layout quality depends on the model.
 
 ## Quick start: install + run
 
