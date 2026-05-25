@@ -47,6 +47,14 @@ visentia serve
 
 Open http://127.0.0.1:8765 — enter a Prompt, watch progress while it generates, then play the video in the page. Metadata from the sidecar is shown below the player. Use `--port` to change the port.
 
+Eval harness (human grading):
+
+```bash
+visentia eval
+```
+
+Runs every entry in [`docs/evals/seed.md`](docs/evals/seed.md) through the pipeline, writes MP4s under `./eval-runs/<timestamp>/`, and emits `./eval-reports/eval-<timestamp>.md` with classifier accuracy, pipeline metadata, and tick-box checklists for 10/10, 5/10, and failure modes.
+
 Tests:
 
 ```bash

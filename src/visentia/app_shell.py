@@ -24,6 +24,9 @@ def main(argv: list[str] | None = None) -> int:
     if argv and argv[0] == "serve":
         return _serve_main(argv[1:])
 
+    if argv and argv[0] == "eval":
+        return _eval_main(argv[1:])
+
     return _generate_main(argv)
 
 
@@ -59,6 +62,30 @@ def _generate_main(argv: list[str]) -> int:
         return 1
 
     raise AssertionError(f"Unexpected result type from orchestrator: {type(result).__name__}")
+
+
+def _eval_main(argv: list[str]) -> int:
+    from visentia.eval import run_evals
+
+    parser = _build_eval_parser()
+    args = parser.parse_args(argv)
+    _configure_logging(verbose=args.verbose)
+
+    print(f"Visentia: running eval harness on {args.eval_file}")
+    report = run_evals(
+        args.eval_file,
+        output_dir=args.output_dir,
+        report_dir=args.report_dir,
+        max_attempts=args.max_attempts,
+    )
+
+    print(
+        f"Visentia: eval complete. Classifier {report.classifier_correct_count}/"
+        f"{report.entry_count} correct; "
+        f"generation {report.generation_success_count}/{report.entry_count} succeeded."
+    )
+    print(f"Visentia: report written to {report.report_path}")
+    return 0 if report.generation_success_count == report.entry_count else 2
 
 
 def _serve_main(argv: list[str]) -> int:
@@ -99,6 +126,47 @@ def _build_generate_parser() -> argparse.ArgumentParser:
         "-v",
         action="store_true",
         help="Show INFO-level logs (classification, sidecar path, etc.).",
+    )
+    return parser
+
+
+def _build_eval_parser() -> argparse.ArgumentParser:
+    repo_root = Path(__file__).resolve().parents[2]
+    default_seed = repo_root / "docs" / "evals" / "seed.md"
+
+    parser = argparse.ArgumentParser(
+        prog="visentia eval",
+        description="Run seed eval prompts through the pipeline and emit a human-grading report.",
+    )
+    parser.add_argument(
+        "--eval-file",
+        type=Path,
+        default=default_seed,
+        help=f"Eval markdown file (default: {default_seed}).",
+    )
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=None,
+        help="Directory for per-entry MP4s (default: ./eval-runs/<timestamp>/).",
+    )
+    parser.add_argument(
+        "--report-dir",
+        type=Path,
+        default=None,
+        help="Directory for eval-<timestamp>.md (default: ./eval-reports/).",
+    )
+    parser.add_argument(
+        "--max-attempts",
+        type=int,
+        default=3,
+        help="Freeform repair attempts per entry (default: 3).",
+    )
+    parser.add_argument(
+        "--verbose",
+        "-v",
+        action="store_true",
+        help="Show INFO-level logs.",
     )
     return parser
 
