@@ -69,6 +69,12 @@ Registered templates:
 - "Triangle3Side": classifying a triangle as acute, right, or obtuse from three given
   side lengths; converse of Pythagoras; comparing c² with a²+b² where c is the longest.
 
+- "WorkedExample": calculating a total from a rate (price per unit) when units must be
+  converted first — e.g. cost per 100g for a quantity in kg; procedure with unit cancellation.
+
+- "AreaTransform": deriving area formulas by cut-and-rearrange motion — rhombus from diagonals,
+  trapezium by duplicating and rotating; Year 8 area derivations.
+
 Return JSON only. Do not include commentary, markdown, or backticks."""
 
 
@@ -85,7 +91,7 @@ _CLASSIFICATION_SCHEMA: dict = {
         },
         "suggested_template_id": {
             "type": "STRING",
-            "enum": ["Triangle3Side", "none"],
+            "enum": ["Triangle3Side", "WorkedExample", "AreaTransform", "none"],
         },
     },
     "required": ["math_content_type", "suggested_mode", "suggested_template_id"],
@@ -138,7 +144,7 @@ class ContentClassifier:
             raise ClassifierError(
                 f"Classifier returned invalid Mode: {suggested_mode!r}"
             )
-        if raw_template not in ("Triangle3Side", "none"):
+        if raw_template not in ("Triangle3Side", "WorkedExample", "AreaTransform", "none"):
             raise ClassifierError(
                 f"Classifier returned invalid template id: {raw_template!r}"
             )
