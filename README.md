@@ -51,9 +51,13 @@ Eval harness (human grading):
 
 ```bash
 visentia eval
+visentia eval --ids EV-001
+export VISENTIA_GEMINI_MODEL=gemini-2.5-flash
 ```
 
 Runs every entry in [`docs/evals/seed.md`](docs/evals/seed.md) through the pipeline, writes MP4s under `./eval-runs/<timestamp>/`, and emits `./eval-reports/eval-<timestamp>.md` with classifier accuracy, pipeline metadata, and tick-box checklists for 10/10, 5/10, and failure modes.
+
+Google AI Studio's **free tier** caps requests per model per day (e.g. 20/day for `gemini-3-flash`). A full seed eval uses several LLM calls per entry (classify, param fill, and sometimes freeform repair). On `429 RESOURCE_EXHAUSTED`, wait for the daily reset, enable billing on the project, switch models via `VISENTIA_GEMINI_MODEL`, or run fewer entries with `--ids`.
 
 Tests:
 

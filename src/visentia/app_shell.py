@@ -72,11 +72,13 @@ def _eval_main(argv: list[str]) -> int:
     _configure_logging(verbose=args.verbose)
 
     print(f"Visentia: running eval harness on {args.eval_file}")
+    entry_ids = [part.strip() for part in args.ids.split(",")] if args.ids else None
     report = run_evals(
         args.eval_file,
         output_dir=args.output_dir,
         report_dir=args.report_dir,
         max_attempts=args.max_attempts,
+        entry_ids=entry_ids,
     )
 
     print(
@@ -161,6 +163,12 @@ def _build_eval_parser() -> argparse.ArgumentParser:
         type=int,
         default=3,
         help="Freeform repair attempts per entry (default: 3).",
+    )
+    parser.add_argument(
+        "--ids",
+        metavar="EV-001,EV-002",
+        default=None,
+        help="Comma-separated eval entry ids to run (default: all entries in the eval file).",
     )
     parser.add_argument(
         "--verbose",

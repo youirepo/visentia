@@ -113,7 +113,7 @@ def test_report_records_classifier_mismatch(tmp_path: Path) -> None:
     )
 
     with patch(
-        "visentia.eval.harness.ContentClassifier.classify",
+        "visentia.orchestrator.ContentClassifier.classify",
         return_value=Classification(
             math_content_type="Relationship",
             suggested_template_id=None,

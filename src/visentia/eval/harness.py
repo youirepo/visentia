@@ -7,7 +7,6 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 
-from visentia.classifier import ContentClassifier
 from visentia.eval.parser import EvalEntry, parse_eval_file
 from visentia.llm import LLMProvider
 from visentia.orchestrator import RepairOrchestrator
@@ -59,6 +58,7 @@ class EvalHarness:
         output_dir: Path | None = None,
         report_dir: Path | None = None,
         max_attempts: int = 3,
+        entry_ids: list[str] | None = None,
     ) -> EvalReport:
         return run_evals(
             eval_file,
@@ -66,6 +66,7 @@ class EvalHarness:
             output_dir=output_dir,
             report_dir=report_dir,
             max_attempts=max_attempts,
+            entry_ids=entry_ids,
         )
 
 
@@ -76,14 +77,21 @@ def run_evals(
     output_dir: Path | None = None,
     report_dir: Path | None = None,
     max_attempts: int = 3,
+    entry_ids: list[str] | None = None,
 ) -> EvalReport:
     """Parse `eval_file`, run each prompt through the pipeline, write a timestamped report."""
 
     seed_path = (eval_file or _default_seed_path()).resolve()
     entries = parse_eval_file(seed_path)
+    if entry_ids:
+        wanted = {eid.strip() for eid in entry_ids if eid.strip()}
+        entries = [e for e in entries if e.id in wanted]
+        if not entries:
+            raise ValueError(
+                f"No eval entries matched --ids {entry_ids!r} in {seed_path}"
+            )
 
     orchestrator = orchestrator or RepairOrchestrator()
-    classifier = ContentClassifier(orchestrator.provider)
 
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
     run_dir = (output_dir or Path.cwd() / "eval-runs" / stamp).resolve()
@@ -100,21 +108,21 @@ def run_evals(
         entry_dir.mkdir(parents=True, exist_ok=True)
 
         started = time.monotonic()
-        classification = classifier.classify(entry.prompt)
         result = orchestrator.generate_video(
             entry.prompt,
             output_dir=entry_dir,
             max_attempts=max_attempts,
         )
         elapsed = time.monotonic() - started
+        mct, mode, template_id = _classification_from_result(result)
 
         entry_results.append(
             EvalEntryResult(
                 entry=entry,
-                classified_math_content_type=classification.math_content_type,
-                classifier_correct=classification.math_content_type == entry.math_content_type,
-                classified_mode=classification.suggested_mode,
-                suggested_template_id=classification.suggested_template_id,
+                classified_math_content_type=mct,
+                classifier_correct=mct == entry.math_content_type,
+                classified_mode=mode,
+                suggested_template_id=template_id,
                 generate_result=result,
                 wall_clock_s=elapsed,
                 provider_name=orchestrator.provider.name,
@@ -146,6 +154,21 @@ def run_evals(
 
 def _default_seed_path() -> Path:
     return Path(__file__).resolve().parents[3] / "docs" / "evals" / "seed.md"
+
+
+def _classification_from_result(
+    result: GenerateResult,
+) -> tuple[str, str, str | None]:
+    """Read classification from orchestrator metadata (single classify per entry)."""
+
+    if isinstance(result, Mp4):
+        data = result.metadata.get("classification") or {}
+        return (
+            str(data.get("math_content_type", "unknown")),
+            str(data.get("suggested_mode", "?")),
+            data.get("suggested_template_id"),
+        )
+    return ("unknown", "?", None)
 
 
 def _render_report(
