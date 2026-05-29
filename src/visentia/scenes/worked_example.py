@@ -220,7 +220,40 @@ class WorkedExampleScene(VoiceoverScene):
 
         step_band = step4
 
-        # --- General procedure ---
+        # --- Final answer (hold on screen) ---
+        answer_title = as_on_screen_text(Text("Answer", font_size=28, color=TEAL))
+        answer_math = as_on_screen_text(
+            MathTex(
+                rf"\text{{Total}} = {currency}{total_cost:g}",
+                font_size=46,
+                color=GREEN,
+            )
+        )
+        answer_detail = as_on_screen_text(
+            MathTex(
+                rf"\frac{{{currency}{rate_num:g}}}{{{rate_den:g}\,\text{{{rate_unit}}}}}"
+                rf" \times {_fmt_quantity(quantity_converted)}\,\text{{{rate_unit}}}"
+                rf" = {currency}{total_cost:g}",
+                font_size=32,
+            )
+        )
+        final = VGroup(answer_title, answer_math, answer_detail).arrange(
+            DOWN, buff=0.35, aligned_edge=LEFT
+        )
+        place_in_band_below(header, final, buff=0.45)
+
+        with self.voiceover(
+            text=f"The total cost is {currency}{total_cost:g}.",
+            subcaption_buff=0,
+        ) as tracker:
+            self.play(FadeOut(step_band), run_time=min(0.3, tracker.duration * 0.1))
+            reveal = min(0.7, tracker.duration * 0.2)
+            self.play(FadeIn(final), run_time=reveal)
+            self.wait(max(0.5, tracker.duration - reveal - min(0.3, tracker.duration * 0.1)))
+
+        step_band = final
+
+        # --- General procedure (keep answer visible) ---
         rule_title = as_on_screen_text(Text("General procedure", font_size=26, color=TEAL))
         rule_text = as_on_screen_text(
             Text(
@@ -229,8 +262,17 @@ class WorkedExampleScene(VoiceoverScene):
                 color=WHITE,
             )
         )
-        step5 = VGroup(rule_title, rule_text).arrange(DOWN, buff=0.3, aligned_edge=LEFT)
-        place_in_band_below(header, step5, buff=0.5)
+        answer_compact = as_on_screen_text(
+            MathTex(
+                rf"\text{{Total}} = {currency}{total_cost:g}",
+                font_size=40,
+                color=GREEN,
+            )
+        )
+        step5 = VGroup(rule_title, rule_text, answer_compact).arrange(
+            DOWN, buff=0.28, aligned_edge=LEFT
+        )
+        place_in_band_below(header, step5, buff=0.45)
 
         with self.voiceover(
             text=(
@@ -241,4 +283,6 @@ class WorkedExampleScene(VoiceoverScene):
         ) as tracker:
             self.play(FadeOut(step_band), run_time=min(0.3, tracker.duration * 0.1))
             self.play(FadeIn(step5), run_time=min(0.6, tracker.duration * 0.2))
-            self.wait(max(0.0, tracker.duration - min(0.6, tracker.duration * 0.2)))
+            self.wait(max(0.5, tracker.duration - min(0.9, tracker.duration * 0.3)))
+
+        self.wait(1.0)
