@@ -9,7 +9,6 @@ from manim import (
     GRAY,
     GREEN,
     LEFT,
-    RED,
     TEAL,
     UP,
     WHITE,
@@ -22,7 +21,7 @@ from manim import (
 )
 from manim_voiceover import VoiceoverScene
 
-from visentia.scenes.layout import as_on_screen_text, place_in_band_below
+from visentia.scenes.layout import as_on_screen_text, fit_in_vertical_band, place_in_band_below
 from visentia.voiceover import VoiceoverSynthesizer
 
 
@@ -30,6 +29,16 @@ def _fmt_quantity(value: float) -> str:
     if value == int(value):
         return str(int(value))
     return f"{value:g}"
+
+
+def _tex_money(amount: float) -> str:
+    """Dollar amounts in MathTex — bare ``$`` breaks LaTeX (``align*`` ends early)."""
+
+    return rf"\text{{\$}}{amount:g}"
+
+
+def _tex_frac_rate(rate_num: float, rate_den: float, rate_unit: str) -> str:
+    return rf"\frac{{{_tex_money(rate_num)}}}{{{rate_den:g}\,\text{{{rate_unit}}}}}"
 
 
 class WorkedExampleScene(VoiceoverScene):
@@ -52,7 +61,6 @@ class WorkedExampleScene(VoiceoverScene):
         p = self.params
         item = str(p["item_label"])
         rate_num = float(p["rate_numerator"])
-        currency = str(p["currency_symbol"])
         rate_den = float(p["rate_denominator"])
         rate_unit = str(p["rate_unit"])
         quantity = float(p["quantity"])
@@ -66,8 +74,8 @@ class WorkedExampleScene(VoiceoverScene):
             VGroup(
                 Text("Rate conversion with unit cancellation", font_size=32),
                 Text(
-                    f"{item}: {currency}{rate_num:g} per {rate_den:g}{rate_unit} — "
-                    f"find total for {quantity:g}{quantity_unit}",
+                    f"{item}: ${_fmt_quantity(rate_num)} per {_fmt_quantity(rate_den)}{rate_unit} — "
+                    f"find total for {_fmt_quantity(quantity)}{quantity_unit}",
                     font_size=22,
                     color=TEAL,
                 ),
@@ -85,7 +93,7 @@ class WorkedExampleScene(VoiceoverScene):
                 rf"{_fmt_quantity(quantity)}\,\text{{{quantity_unit}}}"
                 rf" \times {factor:g} "
                 rf"= {_fmt_quantity(quantity_converted)}\,\text{{{rate_unit}}}",
-                font_size=34,
+                font_size=36,
             )
         )
         step1 = VGroup(convert_title, convert_math).arrange(DOWN, buff=0.35, aligned_edge=LEFT)
@@ -112,9 +120,9 @@ class WorkedExampleScene(VoiceoverScene):
         )
         setup_math = as_on_screen_text(
             MathTex(
-                rf"\frac{{{currency}{rate_num:g}}}{{{rate_den:g}\,\text{{{rate_unit}}}}}"
-                rf" \times {_fmt_quantity(quantity_converted)}\,\text{{{rate_unit}}}",
-                font_size=36,
+                _tex_frac_rate(rate_num, rate_den, rate_unit)
+                + rf" \times {_fmt_quantity(quantity_converted)}\,\text{{{rate_unit}}}",
+                font_size=38,
             )
         )
         step2 = VGroup(setup_title, setup_math).arrange(DOWN, buff=0.35, aligned_edge=LEFT)
@@ -122,7 +130,8 @@ class WorkedExampleScene(VoiceoverScene):
 
         with self.voiceover(
             text=(
-                f"Set up the calculation: {currency}{rate_num:g} per {rate_den:g} {rate_unit}, "
+                f"Set up the calculation: ${_fmt_quantity(rate_num)} per "
+                f"{_fmt_quantity(rate_den)} {rate_unit}, "
                 f"times {_fmt_quantity(quantity_converted)} {rate_unit}."
             ),
             subcaption_buff=0,
@@ -140,17 +149,17 @@ class WorkedExampleScene(VoiceoverScene):
         )
         before_cancel = as_on_screen_text(
             MathTex(
-                rf"\frac{{{currency}{rate_num:g}}}{{{rate_den:g}\,\text{{{rate_unit}}}}}"
-                rf" \times {_fmt_quantity(quantity_converted)}\,\text{{{rate_unit}}}",
-                font_size=34,
+                _tex_frac_rate(rate_num, rate_den, rate_unit)
+                + rf" \times {_fmt_quantity(quantity_converted)}\,\text{{{rate_unit}}}",
+                font_size=36,
                 color=WHITE,
             )
         )
         after_cancel = as_on_screen_text(
             MathTex(
-                rf"\frac{{{currency}{rate_num:g}}}{{{rate_den:g}}}"
-                rf" \times {_fmt_quantity(quantity_converted)}",
-                font_size=36,
+                rf"\frac{{{_tex_money(rate_num)}}}{{{rate_den:g}}}"
+                + rf" \times {_fmt_quantity(quantity_converted)}",
+                font_size=38,
                 color=GREEN,
             )
         )
@@ -189,17 +198,17 @@ class WorkedExampleScene(VoiceoverScene):
         compute_lines = as_on_screen_text(
             VGroup(
                 MathTex(
-                    rf"{currency}{rate_num:g} \times {_fmt_quantity(lots)}"
-                    rf" = {currency}{total_cost:g}",
-                    font_size=38,
+                    rf"{_tex_money(rate_num)} \times {_fmt_quantity(lots)}"
+                    rf" = {_tex_money(total_cost)}",
+                    font_size=40,
                     color=GREEN,
                 ),
                 MathTex(
                     rf"\text{{or}}\quad"
-                    rf"\frac{{{currency}{rate_num:g}}}{{{rate_den:g}}} "
+                    rf"\frac{{{_tex_money(rate_num)}}}{{{rate_den:g}}} "
                     rf"\times {_fmt_quantity(quantity_converted)} "
-                    rf"= {currency}{total_cost:g}",
-                    font_size=30,
+                    rf"= {_tex_money(total_cost)}",
+                    font_size=32,
                 ),
             ).arrange(DOWN, buff=0.25, aligned_edge=LEFT)
         )
@@ -208,8 +217,8 @@ class WorkedExampleScene(VoiceoverScene):
 
         with self.voiceover(
             text=(
-                f"{currency}{rate_num:g} times {_fmt_quantity(lots)} hundred-gram lots "
-                f"is {currency}{total_cost:g}."
+                f"${_fmt_quantity(rate_num)} times {_fmt_quantity(lots)} hundred-gram lots "
+                f"is ${_fmt_quantity(total_cost)}."
             ),
             subcaption_buff=0,
         ) as tracker:
@@ -221,20 +230,20 @@ class WorkedExampleScene(VoiceoverScene):
         step_band = step4
 
         # --- Final answer (hold on screen) ---
-        answer_title = as_on_screen_text(Text("Answer", font_size=28, color=TEAL))
+        answer_title = as_on_screen_text(Text("Answer", font_size=30, color=TEAL))
         answer_math = as_on_screen_text(
             MathTex(
-                rf"\text{{Total}} = {currency}{total_cost:g}",
-                font_size=46,
+                rf"\text{{Total}} = {_tex_money(total_cost)}",
+                font_size=52,
                 color=GREEN,
             )
         )
         answer_detail = as_on_screen_text(
             MathTex(
-                rf"\frac{{{currency}{rate_num:g}}}{{{rate_den:g}\,\text{{{rate_unit}}}}}"
-                rf" \times {_fmt_quantity(quantity_converted)}\,\text{{{rate_unit}}}"
-                rf" = {currency}{total_cost:g}",
-                font_size=32,
+                _tex_frac_rate(rate_num, rate_den, rate_unit)
+                + rf" \times {_fmt_quantity(quantity_converted)}\,\text{{{rate_unit}}}"
+                + rf" = {_tex_money(total_cost)}",
+                font_size=34,
             )
         )
         final = VGroup(answer_title, answer_math, answer_detail).arrange(
@@ -243,46 +252,12 @@ class WorkedExampleScene(VoiceoverScene):
         place_in_band_below(header, final, buff=0.45)
 
         with self.voiceover(
-            text=f"The total cost is {currency}{total_cost:g}.",
+            text=f"The total cost is ${_fmt_quantity(total_cost)}.",
             subcaption_buff=0,
         ) as tracker:
             self.play(FadeOut(step_band), run_time=min(0.3, tracker.duration * 0.1))
             reveal = min(0.7, tracker.duration * 0.2)
             self.play(FadeIn(final), run_time=reveal)
-            self.wait(max(0.5, tracker.duration - reveal - min(0.3, tracker.duration * 0.1)))
+            self.wait(max(1.0, tracker.duration - reveal - min(0.3, tracker.duration * 0.1)))
 
-        step_band = final
-
-        # --- General procedure (keep answer visible) ---
-        rule_title = as_on_screen_text(Text("General procedure", font_size=26, color=TEAL))
-        rule_text = as_on_screen_text(
-            Text(
-                "Match units, multiply rate × quantity so units cancel, then evaluate.",
-                font_size=24,
-                color=WHITE,
-            )
-        )
-        answer_compact = as_on_screen_text(
-            MathTex(
-                rf"\text{{Total}} = {currency}{total_cost:g}",
-                font_size=40,
-                color=GREEN,
-            )
-        )
-        step5 = VGroup(rule_title, rule_text, answer_compact).arrange(
-            DOWN, buff=0.28, aligned_edge=LEFT
-        )
-        place_in_band_below(header, step5, buff=0.45)
-
-        with self.voiceover(
-            text=(
-                "In general: convert so the rate denominator and quantity share the same unit, "
-                "multiply, cancel the units, then calculate the total."
-            ),
-            subcaption_buff=0,
-        ) as tracker:
-            self.play(FadeOut(step_band), run_time=min(0.3, tracker.duration * 0.1))
-            self.play(FadeIn(step5), run_time=min(0.6, tracker.duration * 0.2))
-            self.wait(max(0.5, tracker.duration - min(0.9, tracker.duration * 0.3)))
-
-        self.wait(1.0)
+        self.wait(1.5)

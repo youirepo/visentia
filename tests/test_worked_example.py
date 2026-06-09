@@ -68,6 +68,13 @@ def test_validate_accepts_ev002_fixture() -> None:
     assert params["unit_conversion_factor"] == 1000
 
 
+def test_tex_money_avoids_bare_dollar_in_mathtex() -> None:
+    from visentia.scenes.worked_example import _tex_frac_rate, _tex_money
+
+    assert r"\text{\$}" in _tex_money(5)
+    assert "$" not in _tex_frac_rate(5, 100, "g").replace(r"\text{\$}", "")
+
+
 @pytest.mark.slow
 def test_template_library_fixture_render(tmp_path: Path) -> None:
     library = TemplateLibrary()

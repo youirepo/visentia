@@ -37,6 +37,27 @@ def fit_in_vertical_band(
     return mob
 
 
+def scale_to_diagram_band(
+    mob: Mobject,
+    *,
+    top_y: float,
+    bottom_y: float,
+    fill: float = 0.88,
+) -> Mobject:
+    """Scale a diagram up or down to use most of the vertical band between text strips."""
+
+    band = top_y - bottom_y
+    if band <= 0:
+        return mob
+    mob.scale_to_fit_height(band * fill)
+    mob.move_to([mob.get_center()[0], (top_y + bottom_y) / 2, 0.0])
+    if mob.get_top()[1] > top_y:
+        mob.shift(DOWN * (mob.get_top()[1] - top_y))
+    if mob.get_bottom()[1] < bottom_y:
+        mob.shift(UP * (bottom_y - mob.get_bottom()[1]))
+    return mob
+
+
 def place_in_band_below(
     anchor: Mobject,
     content: Mobject,
