@@ -188,7 +188,7 @@ class WorkedExampleScene(VoiceoverScene):
             )
             self.wait(max(0.0, tracker.duration - min(1.1, tracker.duration * 0.45)))
 
-        step_band = VGroup(cancel_title, after_cancel, cancel_note)
+        step_band = VGroup(cancel_title, before_cancel, after_cancel, cancel_note)
 
         # --- Step 4: compute ---
         compute_title = as_on_screen_text(
