@@ -9,7 +9,6 @@ from manim import (
     GREEN,
     LEFT,
     PI,
-    RIGHT,
     TEAL,
     UP,
     WHITE,
@@ -19,7 +18,6 @@ from manim import (
     FadeOut,
     MathTex,
     Polygon,
-    Rotate,
     Text,
     VGroup,
 )
@@ -29,7 +27,6 @@ from visentia.scenes.layout import (
     BOTTOM_SAFE_Y,
     as_diagram_shape,
     as_on_screen_text,
-    place_in_band_below,
     scale_to_diagram_band,
 )
 from visentia.voiceover import VoiceoverSynthesizer
@@ -61,7 +58,12 @@ def _trapezium_tessellation(a: float, b: float, h: float) -> VGroup:
     lower = as_diagram_shape(
         Polygon(*_trapezium_vertices(a, b, h), color=TEAL, fill_opacity=0.2, stroke_width=3)
     )
-    upper = lower.copy().set_color(GREEN).rotate(PI).shift(UP * h)
+    # Rotate the copy 180° about the midpoint of the right slanted edge (BR–TR)
+    # so it sits beside the original, forming a parallelogram of base a+b — not
+    # stacked on top, which would pinch into an hourglass.
+    verts = lower.get_vertices()
+    right_edge_mid = (verts[1] + verts[2]) / 2
+    upper = lower.copy().set_color(GREEN).rotate(PI, about_point=right_edge_mid)
     return VGroup(lower, upper)
 
 
@@ -109,7 +111,7 @@ class AreaTransformScene(VoiceoverScene):
 
     def _play_rhombus_scene(self, header: VGroup, d1: float, d2: float) -> None:
         section = as_on_screen_text(Text("1. Rhombus", font_size=30, color=YELLOW))
-        place_in_band_below(header, section, buff=0.25)
+        section.next_to(header, DOWN, buff=0.25)
 
         formula = as_on_screen_text(
             MathTex(r"\text{Area}=\frac{1}{2}\,d_1\,d_2", font_size=44, color=GREEN)
@@ -191,10 +193,15 @@ class AreaTransformScene(VoiceoverScene):
             self.play(FadeOut(rhombus), FadeIn(rect), run_time=min(1.0, tracker.duration * 0.35))
             closing.to_edge(DOWN, buff=0.35)
             formula_band_top = closing.get_top()[1] + 0.35
-            if shapes.get_bottom()[1] < formula_band_top:
+            diagram_mobs = VGroup(shapes, rect)
+            if diagram_mobs.get_bottom()[1] < formula_band_top:
+                target_h = (diagram_top - formula_band_top) * 0.95
+                factor = min(1.0, target_h / diagram_mobs.height)
+                target_cy = (diagram_top + formula_band_top) / 2
                 self.play(
-                    shapes.animate.shift(UP * (formula_band_top - shapes.get_bottom()[1])),
-                    rect.animate.shift(UP * (formula_band_top - shapes.get_bottom()[1])),
+                    diagram_mobs.animate.scale(factor).move_to(
+                        [diagram_mobs.get_center()[0], target_cy, 0]
+                    ),
                     run_time=min(0.4, tracker.duration * 0.1),
                 )
             self.play(FadeIn(closing), run_time=min(0.5, tracker.duration * 0.15))
@@ -205,7 +212,7 @@ class AreaTransformScene(VoiceoverScene):
 
     def _play_trapezium_scene(self, header: VGroup, a: float, b: float, h: float) -> None:
         section = as_on_screen_text(Text("2. Trapezium", font_size=28, color=YELLOW))
-        place_in_band_below(header, section, buff=0.25)
+        section.next_to(header, DOWN, buff=0.25)
 
         formula = as_on_screen_text(
             MathTex(r"\text{Area}=\frac{1}{2}(a+b)\,h", font_size=38, color=GREEN)
@@ -231,7 +238,14 @@ class AreaTransformScene(VoiceoverScene):
         single = VGroup(trap, label_a, label_b, label_h)
 
         pair = _trapezium_tessellation(a, b, h)
-        scale_to_diagram_band(pair, top_y=diagram_top, bottom_y=diagram_bottom, fill=0.92)
+        scale_to_diagram_band(
+            pair,
+            top_y=diagram_top,
+            bottom_y=diagram_bottom,
+            fill=0.92,
+            max_width=11.5,
+            center_x=0.0,
+        )
         base_label = as_on_screen_text(MathTex(r"a+b", font_size=26, color=WHITE)).next_to(
             pair, DOWN, buff=0.15
         )
@@ -273,9 +287,16 @@ class AreaTransformScene(VoiceoverScene):
             )
             closing.to_edge(DOWN, buff=0.35)
             formula_band_top = closing.get_top()[1] + 0.35
-            if pair.get_bottom()[1] < formula_band_top:
-                shift = formula_band_top - pair.get_bottom()[1]
-                self.play(pair_group.animate.shift(UP * shift), run_time=min(0.4, tracker.duration * 0.1))
+            if pair_group.get_bottom()[1] < formula_band_top:
+                target_h = (diagram_top - formula_band_top) * 0.95
+                factor = min(1.0, target_h / pair_group.height)
+                target_cy = (diagram_top + formula_band_top) / 2
+                self.play(
+                    pair_group.animate.scale(factor).move_to(
+                        [pair_group.get_center()[0], target_cy, 0]
+                    ),
+                    run_time=min(0.4, tracker.duration * 0.1),
+                )
             self.play(FadeIn(closing), run_time=min(0.5, tracker.duration * 0.15))
             self.wait(max(0.0, tracker.duration - min(1.7, tracker.duration * 0.58)))
 

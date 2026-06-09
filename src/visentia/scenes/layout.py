@@ -43,14 +43,24 @@ def scale_to_diagram_band(
     top_y: float,
     bottom_y: float,
     fill: float = 0.88,
+    max_width: float | None = None,
+    center_x: float | None = None,
 ) -> Mobject:
-    """Scale a diagram up or down to use most of the vertical band between text strips."""
+    """Scale a diagram up or down to use most of the vertical band between text strips.
+
+    Pass ``max_width`` to keep wide diagrams (e.g. a base-(a+b) parallelogram) from
+    running off-frame, and ``center_x`` to recenter horizontally rather than keeping
+    the mobject's current x (which may be off-centre after a tessellation build).
+    """
 
     band = top_y - bottom_y
     if band <= 0:
         return mob
     mob.scale_to_fit_height(band * fill)
-    mob.move_to([mob.get_center()[0], (top_y + bottom_y) / 2, 0.0])
+    if max_width is not None and mob.width > max_width:
+        mob.scale_to_fit_width(max_width)
+    cx = center_x if center_x is not None else mob.get_center()[0]
+    mob.move_to([cx, (top_y + bottom_y) / 2, 0.0])
     if mob.get_top()[1] > top_y:
         mob.shift(DOWN * (mob.get_top()[1] - top_y))
     if mob.get_bottom()[1] < bottom_y:

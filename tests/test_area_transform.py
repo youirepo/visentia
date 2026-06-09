@@ -53,6 +53,22 @@ def test_validate_rejects_non_positive() -> None:
         validate_area_transform_params({**_FIXTURE, "rhombus_d1": 0})
 
 
+def test_trapezium_tessellation_forms_parallelogram() -> None:
+    """Two copies must tile into a base-(a+b) × h parallelogram, not a stacked bowtie."""
+
+    from visentia.scenes.area_transform import _trapezium_tessellation
+
+    a, b, h = 2.0, 4.0, 2.0
+    pair = _trapezium_tessellation(a, b, h)
+    lower, upper = pair[0], pair[1]
+    # Bowtie regression: the old version shifted the copy straight UP*h, giving a
+    # height-2h hourglass with the copy stacked directly above. The fix places the
+    # copy beside the original (same height band, offset to the right).
+    assert pair.height == pytest.approx(h, abs=1e-6)
+    assert upper.get_center()[1] == pytest.approx(lower.get_center()[1], abs=1e-6)
+    assert upper.get_center()[0] > lower.get_center()[0] + b / 2
+
+
 @pytest.mark.slow
 def test_template_library_fixture_render(tmp_path: Path) -> None:
     library = TemplateLibrary()
