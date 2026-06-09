@@ -191,6 +191,33 @@ def test_repair_succeeds_on_attempt_2_in_report(tmp_path: Path) -> None:
     assert provider.codegen_calls == 2
 
 
+def test_prune_old_runs_keeps_latest_per_entry(tmp_path: Path) -> None:
+    """Pruning must keep the newest dir for each entry, even across partial runs."""
+
+    from visentia.eval.harness import _prune_old_runs
+
+    def make_run(stamp: str, entries: list[str]) -> Path:
+        run = tmp_path / stamp
+        for eid in entries:
+            (run / eid).mkdir(parents=True)
+        return run
+
+    # Oldest run fully superseded by the middle run; newest is an EV-003-only run
+    # (the real partial-run scenario that previously lost the latest EV-002).
+    old = make_run("20260609-090000", ["EV-002", "EV-003"])
+    mid = make_run("20260609-100000", ["EV-002", "EV-003"])
+    newest = make_run("20260609-110000", ["EV-003"])
+
+    removed = _prune_old_runs(tmp_path)
+
+    # `old` is fully covered by `mid` → deleted. `mid` survives because it still
+    # holds the latest EV-002 (the newest run only re-rendered EV-003).
+    assert newest.exists()
+    assert mid.exists()
+    assert not old.exists()
+    assert removed == [old]
+
+
 def test_cli_eval_help() -> None:
     import subprocess
     import sys

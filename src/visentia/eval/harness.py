@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import shutil
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -78,6 +79,7 @@ def run_evals(
     report_dir: Path | None = None,
     max_attempts: int = 3,
     entry_ids: list[str] | None = None,
+    prune_old_runs: bool = True,
 ) -> EvalReport:
     """Parse `eval_file`, run each prompt through the pipeline, write a timestamped report."""
 
@@ -143,6 +145,11 @@ def run_evals(
     )
     report_path.write_text(markdown, encoding="utf-8")
 
+    # Only prune when writing to the default eval-runs location — custom output_dir
+    # (e.g. tests on tmp_path) is left untouched.
+    if prune_old_runs and output_dir is None:
+        _prune_old_runs(run_dir.parent)
+
     return EvalReport(
         markdown=markdown,
         report_path=report_path,
@@ -150,6 +157,35 @@ def run_evals(
         classifier_correct_count=correct,
         generation_success_count=successes,
     )
+
+
+def _prune_old_runs(runs_root: Path) -> list[Path]:
+    """Keep only the newest run dir for each entry id; delete superseded runs.
+
+    Safe for partial ``--ids`` runs: a run is removed only when every entry it
+    holds also appears in a newer run, so the latest render of each entry id is
+    always retained (a fresh EV-003-only run never deletes the dir holding the
+    latest EV-002). Timestamped names sort lexicographically, so reverse-sorted
+    names are newest-first.
+    """
+
+    if not runs_root.is_dir():
+        return []
+    run_dirs = sorted(
+        (p for p in runs_root.iterdir() if p.is_dir()),
+        key=lambda p: p.name,
+        reverse=True,
+    )
+    covered: set[str] = set()
+    removed: list[Path] = []
+    for run in run_dirs:
+        entries = {child.name for child in run.iterdir() if child.is_dir()}
+        if not entries or entries <= covered:
+            shutil.rmtree(run, ignore_errors=True)
+            removed.append(run)
+        else:
+            covered |= entries
+    return removed
 
 
 def _default_seed_path() -> Path:
