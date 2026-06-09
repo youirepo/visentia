@@ -145,7 +145,6 @@ class AreaTransformScene(VoiceoverScene):
 
         label_d1 = as_on_screen_text(MathTex(r"d_1", font_size=30)).next_to(diag_h, DOWN, buff=0.15)
         label_d2 = as_on_screen_text(MathTex(r"d_2", font_size=30)).next_to(diag_v, LEFT, buff=0.2)
-        diagram = VGroup(shapes, label_d1, label_d2)
 
         rect = as_diagram_shape(
             Polygon(
@@ -193,21 +192,25 @@ class AreaTransformScene(VoiceoverScene):
             self.play(FadeOut(rhombus), FadeIn(rect), run_time=min(1.0, tracker.duration * 0.35))
             closing.to_edge(DOWN, buff=0.35)
             formula_band_top = closing.get_top()[1] + 0.35
-            diagram_mobs = VGroup(shapes, rect)
-            if diagram_mobs.get_bottom()[1] < formula_band_top:
+            # Only `rect` is still visible here (rhombus + diagonals were faded out).
+            # Scale just `rect` — grouping it with the removed `shapes` would re-add
+            # the rhombus at full opacity and leave it stuck on screen.
+            if rect.get_bottom()[1] < formula_band_top:
                 target_h = (diagram_top - formula_band_top) * 0.95
-                factor = min(1.0, target_h / diagram_mobs.height)
+                factor = min(1.0, target_h / rect.height)
                 target_cy = (diagram_top + formula_band_top) / 2
                 self.play(
-                    diagram_mobs.animate.scale(factor).move_to(
-                        [diagram_mobs.get_center()[0], target_cy, 0]
+                    rect.animate.scale(factor).move_to(
+                        [rect.get_center()[0], target_cy, 0]
                     ),
                     run_time=min(0.4, tracker.duration * 0.1),
                 )
             self.play(FadeIn(closing), run_time=min(0.5, tracker.duration * 0.15))
             self.wait(max(0.0, tracker.duration - min(1.7, tracker.duration * 0.58)))
 
-        self.play(FadeOut(header, section, diagram, rect, closing))
+        # rhombus/diagonals/labels were already faded out above; only `rect` and the
+        # closing text remain visible. Fading the others again would flash them back.
+        self.play(FadeOut(header, section, rect, closing))
         self.wait(0.3)
 
     def _play_trapezium_scene(self, header: VGroup, a: float, b: float, h: float) -> None:
@@ -235,7 +238,6 @@ class AreaTransformScene(VoiceoverScene):
         label_a = as_on_screen_text(MathTex("a", font_size=26)).next_to(trap, UP, buff=0.12)
         label_b = as_on_screen_text(MathTex("b", font_size=26)).next_to(trap, DOWN, buff=0.12)
         label_h = as_on_screen_text(MathTex("h", font_size=26)).next_to(trap, LEFT, buff=0.3)
-        single = VGroup(trap, label_a, label_b, label_h)
 
         pair = _trapezium_tessellation(a, b, h)
         scale_to_diagram_band(
@@ -300,5 +302,7 @@ class AreaTransformScene(VoiceoverScene):
             self.play(FadeIn(closing), run_time=min(0.5, tracker.duration * 0.15))
             self.wait(max(0.0, tracker.duration - min(1.7, tracker.duration * 0.58)))
 
-        self.play(FadeOut(header, section, single, pair_group, closing))
+        # trap + its a/b/h labels were already faded out above; only the parallelogram
+        # and closing text remain. Fading the others again would flash them back.
+        self.play(FadeOut(header, section, pair_group, closing))
         self.wait(0.5)
