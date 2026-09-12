@@ -86,4 +86,4 @@ def test_orchestrator_routes_ev003_prompt(tmp_path: Path) -> None:
     )
     result = orchestrator.generate_video(prompt, output_dir=tmp_path)
     assert isinstance(result, Mp4)
-    assert result.metadata["path_taken"] == "template"
+    assert result.metadata["path_taken"] == "template:AreaTransform"

@@ -40,8 +40,12 @@ class Classification:
 
 _CLASSIFIER_SYSTEM_PROMPT = """\
 You are Visentia's math-content classifier. You read a Tutor's natural-language Prompt
-about an NSW NESA Year 7-10 (Stage 4 + Stage 5) math concept and return a JSON
-classification describing what kind of explanation best fits.
+about an NSW NESA mathematics concept and return a JSON classification describing what
+kind of explanation best fits.
+
+The prototype's scope is NESA **Stage 6** (Years 11-12) Mathematics, functions and
+calculus. The Year 7-10 templates below remain registered from the earlier scope and are
+still valid when a Prompt clearly asks for that material.
 
 Classify into exactly one Math Content Type:
 
@@ -75,6 +79,17 @@ Registered templates:
 - "AreaTransform": deriving area formulas by cut-and-rearrange motion — rhombus from diagonals,
   trapezium by duplicating and rotating; Year 8 area derivations.
 
+- "FunctionGraph": Stage 6 curve sketching — what a function looks like and why. Sketching
+  y = f(x), intercepts, turning points and their classification, vertical asymptotes,
+  transformations (shifts, stretches, reflections), and comparing two curves on one set of
+  axes. Prefer this whenever the Prompt is about the *shape* of a graph.
+
+- "CalculusOnCurve": Stage 6 calculus on a graph — differentiation from first principles
+  (a secant shrinking onto a tangent), the tangent and gradient at a point, the derivative
+  plotted as its own function, the area under a curve as a limit of rectangles, the
+  definite integral, and limits. Prefer this whenever the Prompt is about *rates of change
+  or accumulation* on a curve, rather than the curve's shape.
+
 Return JSON only. Do not include commentary, markdown, or backticks."""
 
 
@@ -91,7 +106,14 @@ _CLASSIFICATION_SCHEMA: dict = {
         },
         "suggested_template_id": {
             "type": "STRING",
-            "enum": ["Triangle3Side", "WorkedExample", "AreaTransform", "none"],
+            "enum": [
+                "Triangle3Side",
+                "WorkedExample",
+                "AreaTransform",
+                "FunctionGraph",
+                "CalculusOnCurve",
+                "none",
+            ],
         },
     },
     "required": ["math_content_type", "suggested_mode", "suggested_template_id"],
@@ -144,7 +166,14 @@ class ContentClassifier:
             raise ClassifierError(
                 f"Classifier returned invalid Mode: {suggested_mode!r}"
             )
-        if raw_template not in ("Triangle3Side", "WorkedExample", "AreaTransform", "none"):
+        if raw_template not in (
+            "Triangle3Side",
+            "WorkedExample",
+            "AreaTransform",
+            "FunctionGraph",
+            "CalculusOnCurve",
+            "none",
+        ):
             raise ClassifierError(
                 f"Classifier returned invalid template id: {raw_template!r}"
             )

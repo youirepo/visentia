@@ -95,7 +95,7 @@ def test_orchestrator_routes_ev002_prompt_to_worked_example(tmp_path: Path) -> N
     result = orchestrator.generate_video(prompt, output_dir=tmp_path)
 
     assert isinstance(result, Mp4)
-    assert result.metadata["path_taken"] == "template"
+    assert result.metadata["path_taken"] == "template:WorkedExample"
     assert result.metadata["template_params"]["rate_numerator"] == 5
     assert result.path.exists()
     assert result.path.stat().st_size > 0

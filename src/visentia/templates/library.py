@@ -7,6 +7,8 @@ from typing import Any
 
 from manim import tempconfig
 
+from visentia.scenes.calculus_on_curve import CalculusOnCurveScene
+from visentia.scenes.function_graph import FunctionGraphScene
 from visentia.scenes.triangle_3_side import Triangle3SideScene
 from visentia.scenes.area_transform import AreaTransformScene
 from visentia.scenes.worked_example import WorkedExampleScene
@@ -117,10 +119,166 @@ _AREA_TRANSFORM = TemplateSpec(
     },
 )
 
+# --- Stage 6: functions and calculus (issue #33) ----------------------------
+#
+# Both Stage 6 templates take one function, one domain, and a list of beats. The beat list
+# is the animation sequence. Keeping the two schemas structurally
+# identical means the ParamFiller learns one shape, not two.
+
+
+def _graph_schema(beat_kinds: list[str], beat_description: str) -> dict[str, Any]:
+    return {
+        "type": "OBJECT",
+        "properties": {
+            "title": {"type": "STRING", "description": "Short subtitle naming the concept"},
+            "function": {
+                "type": "STRING",
+                "description": (
+                    "The function of x, as an expression: '+ - * / ^', numbers, 'x', the "
+                    "constants pi and e, and the functions sin cos tan asin acos atan sinh "
+                    "cosh tanh exp ln log log10 sqrt abs. Examples: 'x**2 - 4*x + 3', "
+                    "'x*exp(-x)', '(x^2 - 1)/(x - 2)'."
+                ),
+            },
+            "x_min": {
+                "type": "NUMBER",
+                "description": (
+                    "Left end of the plotted domain. Choose a domain just wide enough to show "
+                    "the features being discussed: a cubic or quartic over a wide domain reaches "
+                    "values so large that its turning points are squashed flat."
+                ),
+            },
+            "x_max": {"type": "NUMBER", "description": "Right end of the plotted domain"},
+            "y_min": {
+                "type": "NUMBER",
+                "description": "Optional bottom of the plotted range; omit to frame the curve automatically",
+            },
+            "y_max": {
+                "type": "NUMBER",
+                "description": "Optional top of the plotted range; omit to frame the curve automatically",
+            },
+            "beats": {
+                "type": "ARRAY",
+                "description": beat_description,
+                "items": {
+                    "type": "OBJECT",
+                    "properties": {
+                        "kind": {"type": "STRING", "enum": beat_kinds},
+                        "x": {"type": "NUMBER", "description": "The x-value the beat is about"},
+                        "lower": {"type": "NUMBER", "description": "Left end of a region"},
+                        "upper": {"type": "NUMBER", "description": "Right end of a region"},
+                        "h": {"type": "NUMBER", "description": "Starting step for a shrinking sequence"},
+                        "counts": {
+                            "type": "ARRAY",
+                            "description": "Successive rectangle counts, e.g. [4, 8, 16, 32]",
+                            "items": {"type": "INTEGER"},
+                        },
+                        "steps": {
+                            "type": "ARRAY",
+                            "description": "Explicit shrinking h values, e.g. [2, 1, 0.5, 0.25]",
+                            "items": {"type": "NUMBER"},
+                        },
+                        "expression": {
+                            "type": "STRING",
+                            "description": "A second function, for transform and compare_curves beats",
+                        },
+                        "description": {
+                            "type": "STRING",
+                            "description": "How to describe a transformation, e.g. 'a shift 2 units right'",
+                        },
+                        "heading": {"type": "STRING", "description": "Optional on-screen beat heading"},
+                    },
+                    "required": ["kind"],
+                },
+            },
+        },
+        "required": ["function", "x_min", "x_max", "beats"],
+    }
+
+
+FUNCTION_GRAPH_SCHEMA: dict[str, Any] = _graph_schema(
+    ["plot", "intercepts", "turning_point", "asymptote", "transform", "compare_curves"],
+    (
+        "Ordered list of beats. 'plot' draws and labels the curve; 'intercepts' reveals the "
+        "x- and y-intercepts; 'turning_point' marks a stationary point and classifies it "
+        "(optionally at a declared 'x'); 'asymptote' dashes in vertical asymptotes; "
+        "'transform' (expression, description) morphs the curve into a transformed version "
+        "of itself; 'compare_curves' (expression) draws a second curve alongside. Start with "
+        "'plot' unless a later beat draws the curve itself."
+    ),
+)
+
+_FUNCTION_GRAPH = TemplateSpec(
+    id="FunctionGraph",
+    description=(
+        "Stage 6 curve sketching: what a function looks like and why. Plot a curve, reveal "
+        "its intercepts, mark and classify turning points, show vertical asymptotes, apply a "
+        "transformation (shift, stretch, reflection), or compare two curves on one set of "
+        "axes. Use for 'sketch y = ...', 'what does this graph look like', 'how does changing "
+        "this move the graph', domain and range, and features of polynomials, rationals, "
+        "exponentials and logarithms."
+    ),
+    param_schema=FUNCTION_GRAPH_SCHEMA,
+    scene_class=FunctionGraphScene,
+    fixture_params={
+        "title": "Features of a quadratic",
+        "function": "x**2 - 4*x + 3",
+        "x_min": -1,
+        "x_max": 5,
+        "beats": [
+            {"kind": "plot"},
+            {"kind": "intercepts"},
+            {"kind": "turning_point"},
+        ],
+    },
+)
+
+CALCULUS_ON_CURVE_SCHEMA: dict[str, Any] = _graph_schema(
+    [
+        "tangent_at",
+        "secant_to_tangent",
+        "gradient_function",
+        "riemann_sum",
+        "area_under",
+        "limit_approach",
+    ],
+    (
+        "Ordered list of beats. 'tangent_at' (x) draws the tangent and states its gradient; "
+        "'secant_to_tangent' (x, optional h or steps) shrinks a secant onto the tangent — "
+        "differentiation from first principles; 'gradient_function' plots the derivative on "
+        "the same axes; 'riemann_sum' (lower, upper, optional counts) refines rectangles "
+        "under the curve; 'area_under' (lower, upper) shades the definite integral and shows "
+        "its notation; 'limit_approach' (x) closes in on a value from both sides."
+    ),
+)
+
+_CALCULUS_ON_CURVE = TemplateSpec(
+    id="CalculusOnCurve",
+    description=(
+        "Stage 6 calculus on a graph: the gradient at a point as the limit of a secant "
+        "(first principles), the derivative plotted as its own function, the area under a "
+        "curve as a limit of rectangles, the definite integral, and one-sided limits. Use "
+        "for 'what is a derivative really', 'differentiate from first principles', 'why is "
+        "the integral the area', tangents and gradients at a point, and limits."
+    ),
+    param_schema=CALCULUS_ON_CURVE_SCHEMA,
+    scene_class=CalculusOnCurveScene,
+    fixture_params={
+        "title": "Gradient as a limit",
+        "function": "x**2",
+        "x_min": -0.5,
+        "x_max": 3,
+        "beats": [{"kind": "secant_to_tangent", "x": 1, "steps": [1.5, 0.75]}],
+    },
+)
+
+
 _REGISTRY: dict[str, TemplateSpec] = {
     "Triangle3Side": _TRIANGLE_3_SIDE,
     "WorkedExample": _WORKED_EXAMPLE,
     "AreaTransform": _AREA_TRANSFORM,
+    "FunctionGraph": _FUNCTION_GRAPH,
+    "CalculusOnCurve": _CALCULUS_ON_CURVE,
 }
 
 

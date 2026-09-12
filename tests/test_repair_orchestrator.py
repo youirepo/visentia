@@ -204,7 +204,7 @@ def test_template_fallback_after_freeform_exhaust(tmp_path: Path) -> None:
         )
 
     assert isinstance(result, Mp4)
-    assert result.metadata["path_taken"] == "freeform-fallback-to-template"
+    assert result.metadata["path_taken"] == "freeform-fallback-to-template:Triangle3Side"
     assert result.metadata["classification_mode"] == "freeform-fallback-to-template"
     assert result.metadata["freeform_attempts"] == 2
     assert provider.codegen_calls == 2
