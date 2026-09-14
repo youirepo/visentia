@@ -151,7 +151,7 @@ class RepairOrchestrator:
                         classification,
                         target_dir,
                     )
-                    path_taken = "freeform-fallback-to-template"
+                    path_taken = f"freeform-fallback-to-{path_taken}"
                     classification_mode = "freeform-fallback-to-template"
                     freeform_attempts = exc.attempts
                 except Exception as fallback_exc:
@@ -237,7 +237,10 @@ class RepairOrchestrator:
             )
 
         mp4_path = self._template_library.render(template_id, fill_result, output_dir)
-        return mp4_path, "template", fill_result
+        # Named rather than bare "template" so eval runs can report template *coverage* —
+        # which templates the classifier actually reaches, and how each one fares against
+        # the freeform baseline (issue #33).
+        return mp4_path, f"template:{template_id}", fill_result
 
     def _render_freeform(
         self,
