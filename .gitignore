@@ -24,3 +24,6 @@ videos/
 # Eval harness outputs (visentia eval)
 eval-runs/
 eval-reports/
+
+# Teaching workspace (/teach skill) — personal learning artifacts, not product code.
+teaching/

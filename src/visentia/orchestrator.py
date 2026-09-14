@@ -26,7 +26,7 @@ from visentia.freeform import (
 )
 from visentia.freeform.repair import format_lint_repair_context, format_render_result_context
 from visentia.llm import LLMError, LLMProvider, MissingApiKeyError
-from visentia.llm.gemini import Gemini
+from visentia.llm.claude import CHAT_MODEL, CODEGEN_MODEL, HIGH_EFFORT, LOW_EFFORT, Claude
 from visentia.results import Failure, GenerateResult, Mp4
 from visentia.templates import FillError, ParamFiller, TemplateLibrary
 from visentia.voiceover import VoiceoverSynthesizer
@@ -50,18 +50,40 @@ class RepairOrchestrator:
         self,
         provider: LLMProvider | None = None,
         *,
+        codegen_provider: LLMProvider | None = None,
         template_library: TemplateLibrary | None = None,
         sandboxed_renderer: SandboxedRenderer | None = None,
     ) -> None:
         self._provider = provider
+        # Passing `provider` alone drives both roles from it — the shape every existing
+        # test and script uses. The split only appears when nothing is injected.
+        self._codegen_provider = codegen_provider or provider
         self._template_library = template_library or TemplateLibrary()
         self._sandboxed_renderer = sandboxed_renderer
 
     @property
     def provider(self) -> LLMProvider:
+        """Classification and parameter filling — Sonnet 5 at low effort (#27).
+
+        Both jobs are constrained: pick a template from a list, fill a typed schema. The
+        expensive model buys nothing here.
+        """
+
         if self._provider is None:
-            self._provider = Gemini()
+            self._provider = Claude(model=CHAT_MODEL, effort=LOW_EFFORT)
         return self._provider
+
+    @property
+    def codegen_provider(self) -> LLMProvider:
+        """Freeform Manim generation — Opus 5 at high effort (#27).
+
+        This is the path PRISM measures at 26-57% spatial correctness, and the one the
+        template library exists to avoid. When it does run, it runs on the capable model.
+        """
+
+        if self._codegen_provider is None:
+            self._codegen_provider = Claude(model=CODEGEN_MODEL, effort=HIGH_EFFORT)
+        return self._codegen_provider
 
     def generate_video(
         self,
@@ -195,6 +217,7 @@ class RepairOrchestrator:
             "tts": "edge-tts",
             "llm_provider": self.provider.name,
             "llm_model": self.provider.model,
+            "llm_codegen_model": self.codegen_provider.model,
             "classification": {
                 "math_content_type": classification.math_content_type,
                 "suggested_template_id": classification.suggested_template_id,
@@ -250,7 +273,7 @@ class RepairOrchestrator:
         *,
         max_attempts: int,
     ) -> tuple[Path, str, int]:
-        codegen = FreeformCodegen(self.provider)
+        codegen = FreeformCodegen(self.codegen_provider)
         linter = StaticLinter()
         renderer = self._sandboxed_renderer or SandboxedRenderer()
 
